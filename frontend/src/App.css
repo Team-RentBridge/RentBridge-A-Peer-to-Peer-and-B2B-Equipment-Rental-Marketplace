@@ -1,197 +1,165 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-/* 1. Global Reset to prevent scrollbars and alignment issues */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* Global */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
 }
 
- 
-html, body, #root {
-  width: 100%;
-  min-height: 100vh;
-  background-color: #0f172a;
-  background-image: radial-gradient(circle at 50% -20%, #1e293b, #0f172a);
-  color: #f8fafc;
-  font-family: 'Inter', system-ui, sans-serif;
-  overflow-x: hidden;
+body{
+  font-family: 'Segoe UI', sans-serif;
+  background:#f6f8fb;
 }
 
- 
-.app-container {
-  width: 100%;
-  max-width: 1400px; /* Widened from 1200px for better screen coverage */
-  margin: 0 auto;    /* Centers the container horizontally */
-  padding: 40px 5%;  /* Relative padding adjusts to screen size */
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Centers all child elements */
+/* Main container */
+.app-container{
+  max-width:1200px;
+  margin:auto;
+  padding:30px 20px;
 }
 
-/* Header Styles */
-.header {
-  text-align: center;
-  margin-bottom: 50px;
-  width: 100%;
+/* Header */
+.header{
+  text-align:center;
+  margin-bottom:35px;
 }
 
-.title {
-  font-size: 3.5rem;
-  font-weight: 700;
-  margin-bottom: 10px;
-  background: linear-gradient(to right, #60a5fa, #a78bfa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.title{
+  font-size:38px;
+  font-weight:700;
+  color:#2563eb;
 }
 
-.subtitle {
-  color: #94a3b8;
-  font-size: 1.2rem;
+.subtitle{
+  margin-top:5px;
+  color:#64748b;
+  font-size:16px;
 }
 
-/* Search and Filter Styles */
-.controls-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap; /* Allows stacking on smaller screens */
-  gap: 20px;
-  margin-bottom: 50px;
-  width: 100%;
-  max-width: 800px;
+/* Search + Filter section */
+.controls-container{
+  display:flex;
+  justify-content:center;
+  gap:15px;
+  margin-bottom:35px;
+  flex-wrap:wrap;
 }
 
-.search-input, .category-select {
-  background-color: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #f8fafc;
-  padding: 14px 20px;
-  border-radius: 50px;
-  font-size: 1rem;
-  outline: none;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+.search-input{
+  width:350px;
+  padding:12px 15px;
+  border-radius:8px;
+  border:1px solid #d1d5db;
+  font-size:15px;
+  outline:none;
 }
 
-.search-input {
-  flex-grow: 1; /* Makes search bar take up available space */
-  min-width: 250px;
+.search-input:focus{
+  border-color:#2563eb;
 }
 
-.category-select {
-  cursor: pointer;
+.category-select{
+  padding:12px 15px;
+  border-radius:8px;
+  border:1px solid #d1d5db;
+  font-size:15px;
+  cursor:pointer;
 }
 
-.search-input:focus, .category-select:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+/* Grid */
+.product-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:25px;
 }
 
-/* Grid Styles - Automatically adjusts columns to fill space nicely */
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 30px;
-  width: 100%; /* Ensures grid spans the full container width */
-  justify-items: center; /* Centers items within their grid cells */
+/* Card */
+.product-card{
+  background:white;
+  border-radius:12px;
+  padding:15px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.08);
+  transition:all 0.25s ease;
 }
 
-/* Card Styles */
-.product-card {
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 20px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  backdrop-filter: blur(12px);
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 400px; /* Prevents cards from getting too stretched on large screens */
+.product-card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 10px 25px rgba(0,0,0,0.12);
 }
 
-.product-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  border-color: rgba(255, 255, 255, 0.2);
+/* Image */
+.product-image{
+  width:100%;
+  height:180px;
+  object-fit:cover;
+  border-radius:8px;
 }
 
-.product-image {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  background-color: #1e293b;
+/* Card Header */
+.card-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:12px;
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 15px;
+.product-name{
+  font-size:18px;
+  font-weight:600;
 }
 
-.product-name {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-  line-height: 1.4;
+/* Badge */
+.badge{
+  font-size:12px;
+  padding:4px 8px;
+  border-radius:6px;
+  color:white;
 }
 
-.badge {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
+.badge.b2b{
+  background:#16a34a;
 }
 
-.badge.b2b { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
-.badge.b2c { background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
-
-.product-details {
-  color: #94a3b8;
-  font-size: 0.95rem;
-  margin-bottom: 20px;
-  flex-grow: 1;
+.badge.b2c{
+  background:#3b82f6;
 }
 
-.price-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: auto;
-  padding-top: 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+/* Details */
+.product-details{
+  margin-top:6px;
+  color:#64748b;
+  font-size:14px;
 }
 
-.price {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #f8fafc;
+/* Price + Button */
+.price-container{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:12px;
 }
 
-.price span {
-  font-size: 0.9rem;
-  color: #94a3b8;
-  font-weight: 400;
+.price{
+  font-size:20px;
+  font-weight:700;
 }
 
-.book-btn {
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+.price span{
+  font-size:13px;
+  color:#64748b;
 }
 
-.book-btn:hover {
-  background-color: #2563eb;
+/* Button */
+.book-btn{
+  background:#2563eb;
+  border:none;
+  color:white;
+  padding:8px 14px;
+  border-radius:7px;
+  cursor:pointer;
+  font-size:14px;
+  transition:0.2s;
+}
+
+.book-btn:hover{
+  background:#1e40af;
 }

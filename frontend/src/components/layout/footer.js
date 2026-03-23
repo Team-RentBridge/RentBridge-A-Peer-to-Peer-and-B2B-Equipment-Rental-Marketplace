@@ -1,9 +1,7 @@
-import React from "react";
-
 function Footer() {
   return (
-    <footer className="footer">
-      <p>© 2026 RentBridge. All Rights Reserved.</p>
+    <footer className="bg-black text-white text-center py-6">
+      © 2026 RentBridge. All rights reserved.
     </footer>
   );
 }

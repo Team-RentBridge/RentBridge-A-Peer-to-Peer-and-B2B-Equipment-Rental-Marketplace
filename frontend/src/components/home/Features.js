@@ -1,29 +1,20 @@
-import React from "react";
-
 function Features() {
   return (
-    <section className="features">
-      <h2>Our Features</h2>
+    <section className="py-20 px-6 bg-gray-50 text-center">
+      <h2 className="text-3xl font-bold mb-10">Features</h2>
 
-      <div className="feature-grid">
-        <div className="feature-card">
-          <h3>Secure Payments</h3>
-          <p>Escrow-based payment system to protect both renters and owners.</p>
+      <div className="grid md:grid-cols-4 gap-6 max-w-6xl mx-auto">
+        <div className="p-6 border rounded-xl shadow-sm">
+          🔒 Secure Payments
         </div>
-
-        <div className="feature-card">
-          <h3>Smart Booking</h3>
-          <p>Availability calendar prevents double bookings.</p>
+        <div className="p-6 border rounded-xl shadow-sm">
+          ⚡ Fast Booking
         </div>
-
-        <div className="feature-card">
-          <h3>B2B Rentals</h3>
-          <p>Businesses can rent bulk equipment and heavy machinery.</p>
+        <div className="p-6 border rounded-xl shadow-sm">
+          📅 Availability Tracking
         </div>
-
-        <div className="feature-card">
-          <h3>Admin Monitoring</h3>
-          <p>Admin dashboard tracks transactions and platform activity.</p>
+        <div className="p-6 border rounded-xl shadow-sm">
+          🤝 Peer + Business Support
         </div>
       </div>
     </section>

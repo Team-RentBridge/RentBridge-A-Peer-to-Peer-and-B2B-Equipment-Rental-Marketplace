@@ -1,31 +1,14 @@
-import React from "react";
-
 function WhyUs() {
   return (
-    <section className="whyus">
-      <h2>Why Choose RentBridge</h2>
+    <section className="py-20 px-6 text-center max-w-4xl mx-auto">
+      <h2 className="text-3xl font-bold mb-6">About RentBridge</h2>
 
-      <div className="why-grid">
-        <div>
-          <h3>Secure Transactions</h3>
-          <p>Escrow-based payment system ensures safe rental transactions.</p>
-        </div>
-
-        <div>
-          <h3>Smart Booking</h3>
-          <p>Automated availability system prevents double bookings.</p>
-        </div>
-
-        <div>
-          <h3>B2B Support</h3>
-          <p>Businesses can rent bulk equipment and heavy machinery.</p>
-        </div>
-
-        <div>
-          <h3>Transparent Reviews</h3>
-          <p>Rating system builds trust between renters and lenders.</p>
-        </div>
-      </div>
+      <p className="text-gray-600 text-lg leading-relaxed">
+        RentBridge is a modern rental marketplace where individuals and
+        businesses can rent tools, electronics, and machinery instead of
+        purchasing them. We ensure secure transactions using escrow systems,
+        live tracking, and structured booking workflows.
+      </p>
     </section>
   );
 }

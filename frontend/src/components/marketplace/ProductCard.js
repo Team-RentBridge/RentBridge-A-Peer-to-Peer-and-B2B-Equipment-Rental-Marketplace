@@ -1,215 +1,142 @@
-import { enUS } from "date-fns/locale";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { DateRange } from "react-date-range";
+import { useNavigate } from "react-router-dom";
 
-function ProductCard({ product }) {
-  const [open, setOpen] = useState(false);
+const ProductCard = ({ product }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [mode, setMode] = useState("");
-  const [rentType, setRentType] = useState("take");
+  const navigate = useNavigate();
 
-  const [range, setRange] = useState([
-    {
-      startDate: new Date(),
-      endDate: new Date(),
-      key: "selection",
-    },
-  ]);
+  const handleCardClick = (e) => {
+    // Don't expand if clicking on buttons
+    if (e.target.tagName === 'BUTTON') return;
+    setIsExpanded(!isExpanded);
+  };
 
-  const pricePerDay = product.price || 100;
+  const addToCart = () => {
+    const cartItem = {
+      id: product.id,
+      title: product.title,
+      image_url: product.image_url,
+      price_per_day: product.price_per_day,
+      quantity: quantity,
+      type: 'buy' // or 'rent' based on selection
+    };
 
-  const calculateRent = () => {
-    const start = range[0].startDate;
-    const end = range[0].endDate;
+    const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const existingIndex = existingCart.findIndex(item => item.id === product.id);
 
-    const days =
-      (end - start) / (1000 * 60 * 60 * 24);
+    if (existingIndex >= 0) {
+      existingCart[existingIndex].quantity += quantity;
+    } else {
+      existingCart.push(cartItem);
+    }
 
-    return days > 0 ? days * pricePerDay * quantity : 0;
+    localStorage.setItem('cart', JSON.stringify(existingCart));
+    alert('Added to cart!');
+    setIsExpanded(false);
   };
 
   return (
     <>
-      {/* CARD */}
       <div
-        onClick={() => setOpen(true)}
-        className="border rounded-xl p-4 shadow-sm hover:shadow-md cursor-pointer transition bg-white"
+        className={`bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transition-all duration-300 ${
+          isExpanded ? 'fixed inset-4 z-50 max-w-2xl mx-auto' : 'hover:shadow-lg'
+        }`}
+        onClick={handleCardClick}
       >
-        <img
-          src={product.image}
-          alt={product.name}
-          className="h-40 w-full object-cover rounded-lg mb-3"
-        />
+        <div className="relative">
+          <img
+            src={product.image_url || '/placeholder.jpg'}
+            alt={product.title}
+            className="w-full h-48 object-cover"
+          />
+          <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded text-sm">
+            {product.owner_id ? 'Peer' : 'Business'}
+          </div>
+        </div>
 
-        <h3 className="font-semibold">{product.name}</h3>
+        <div className="p-4">
+          <h3 className="font-semibold text-lg mb-2">{product.title}</h3>
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
 
-        <p className="text-gray-500 text-sm">
-          ₹{product.price}/day
-        </p>
+          <div className="flex justify-between items-center mb-3">
+            <div>
+              <p className="text-green-600 font-semibold">₹{product.price_per_day}/day</p>
+              <p className="text-gray-500 text-sm">Buy: ₹{product.price_per_day * 30}</p>
+            </div>
+          </div>
 
-        <span
-          className={`text-xs px-2 py-1 rounded-full mt-2 inline-block ${
-            product.type === "peer"
-              ? "bg-green-100 text-green-600"
-              : "bg-blue-100 text-blue-600"
-          }`}
-        >
-          {product.type}
-        </span>
-      </div>
+          {!isExpanded && (
+            <div className="flex gap-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.id}`); }}
+                className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+              >
+                View Details
+              </button>
+            </div>
+          )}
 
-      {/* MODAL */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            className="fixed inset-0 bg-black/40 flex justify-center items-center z-50"
-            onClick={() => setOpen(false)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white w-[60%] h-[85%] rounded-xl p-6 overflow-y-auto"
-              initial={{ scale: 0.7, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.7, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="grid grid-cols-2 gap-6">
-                {/* LEFT */}
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-72 object-cover rounded-lg"
-                />
-
-                {/* RIGHT */}
-                <div>
-                  <h2 className="text-2xl font-bold">
-                    {product.name}
-                  </h2>
-
-                  <p className="text-gray-600 mb-3">
-                    ₹{product.price}/day
-                  </p>
-
-                  {/* QUANTITY */}
-                  <div className="border rounded-lg px-3 py-2 mb-4 w-40">
-                    <label className="text-sm text-gray-500">
-                      Quantity
-                    </label>
-                    <select
-                      value={quantity}
-                      onChange={(e) =>
-                        setQuantity(Number(e.target.value))
-                      }
-                      className="w-full outline-none"
-                    >
-                      {[1, 2, 3, 4, 5].map((q) => (
-                        <option key={q} value={q}>
-                          {q}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* BUTTONS */}
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => setMode("buy")}
-                      className="w-full bg-yellow-400 py-2 rounded-full font-semibold hover:bg-yellow-500"
-                    >
-                      Add to Cart
-                    </button>
-
-                    <button
-                      onClick={() => setMode("buy")}
-                      className="w-full bg-orange-400 py-2 rounded-full font-semibold hover:bg-orange-500"
-                    >
-                      Buy Now
-                    </button>
-
-                    <button
-                      onClick={() => setMode("rent")}
-                      className="w-full bg-blue-500 py-2 rounded-full text-white font-semibold hover:bg-blue-600"
-                    >
-                      Rent
-                    </button>
-                  </div>
-
-                  {/* RENT FLOW */}
-                  <AnimatePresence>
-                    {mode === "rent" && (
-                      <motion.div
-                        className="mt-6 border-t pt-4 space-y-4"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                      >
-                        {/* TOGGLE */}
-                        <div className="flex gap-3">
-                          <button
-                            onClick={() =>
-                              setRentType("take")
-                            }
-                            className={`px-4 py-1 rounded-full ${
-                              rentType === "take"
-                                ? "bg-blue-500 text-white"
-                                : "bg-gray-200"
-                            }`}
-                          >
-                            Take on Rent
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              setRentType("give")
-                            }
-                            className={`px-4 py-1 rounded-full ${
-                              rentType === "give"
-                                ? "bg-blue-500 text-white"
-                                : "bg-gray-200"
-                            }`}
-                          >
-                            Give on Rent
-                          </button>
-                        </div>
-
-                        {/* CALENDAR */}
-                        <DateRange
-                          editableDateInputs={true}
-                          onChange={(item) => setRange([item.selection])}
-                          moveRangeOnFirstSelection={false}
-                          ranges={range}
-                          locale={enUS}
-                        />
-
-                        {/* PRICE */}
-                        <div className="text-lg font-semibold">
-                          Total: ₹{calculateRent()}
-                        </div>
-
-                        {/* FINAL BUTTONS */}
-                        <button className="w-full bg-yellow-400 py-2 rounded-full font-semibold">
-                          Add to Cart
-                        </button>
-
-                        <button className="w-full bg-orange-400 py-2 rounded-full font-semibold">
-                          Go Now
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+          {isExpanded && (
+            <div className="space-y-4">
+              <div className="border-t pt-4">
+                <h4 className="font-semibold mb-2">Rent Options</h4>
+                <div className="space-y-2">
+                  <button className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                    Take this item for rent
+                  </button>
+                  <button className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">
+                    Give this item for rent
+                  </button>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+              <div className="border-t pt-4">
+                <h4 className="font-semibold mb-2">Quantity</h4>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="bg-gray-200 px-3 py-1 rounded"
+                  >
+                    -
+                  </button>
+                  <span className="px-3">{quantity}</span>
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="bg-gray-200 px-3 py-1 rounded"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <button className="flex-1 bg-orange-600 text-white py-2 rounded hover:bg-orange-700">
+                  Buy
+                </button>
+                <button className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                  Rent
+                </button>
+                <button
+                  onClick={addToCart}
+                  className="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700"
+                >
+                  Add to Cart
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {isExpanded && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setIsExpanded(false)}
+        />
+      )}
     </>
   );
-}
+};
 
 export default ProductCard;

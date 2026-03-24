@@ -1,38 +1,52 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, AuthContext } from "./context/AuthContext";
+import { useContext } from "react";
 
-// 🌐 GLOBAL CSS (important for calendar)
-import "react-date-range/dist/styles.css";
-import "react-date-range/dist/theme/default.css";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Marketplace from "./pages/Marketplace";
+import ProductDetails from "./pages/ProductDetails";
+import Cart from "./pages/Cart";
+import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import RentSection from "./pages/RentSection";
 
-// 📄 PAGES
-import Home from "./Pages/Home";
-import Marketplace from "./Pages/Marketplace";
-import ProductDetails from "./Pages/ProductDetails";
-import Profile from "./Pages/Profile";
-import AdminDashboard from "./Pages/AdminDashboard";
-import Login from "./Pages/Login";
-import Register from "./Pages/Register";
+function PrivateRoute({ children }) {
+  const { user } = useContext(AuthContext);
+  return user ? children : <Navigate to="/login" />;
+}
+
+function AdminRoute({ children }) {
+  const { user } = useContext(AuthContext);
+  return user && user.role === 'admin' ? children : <Navigate to="/dashboard" />;
+}
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
 
-        {/* 🌍 PUBLIC ROUTES */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        {/* 🛒 USER ROUTES */}
-        <Route path="/marketplace" element={<Marketplace />} />
-        <Route path="/product/:id" element={<ProductDetails />} />
-        <Route path="/profile" element={<Profile />} />
+          <Route path="/marketplace" element={
+            <PrivateRoute><Marketplace /></PrivateRoute>
+          } />
 
-        {/* 🛠 ADMIN ROUTE */}
-        <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/product/:id" element={<ProductDetails />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/rent" element={<RentSection />} />
+          <Route path="/admin" element={
+            <AdminRoute><AdminDashboard /></AdminRoute>
+          } />
 
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

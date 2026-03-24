@@ -1,70 +1,85 @@
-import { FaSearch, FaShoppingCart, FaUser } from "react-icons/fa";
+import { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
-function Navbar() {
+function Navbar({ showSearch = false, searchValue = "", onSearchChange = () => {} }) {
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
   return (
-    <div className="w-full shadow-md">
+    <div className="bg-gray-900 text-white flex justify-between items-center p-4">
 
-      {/* TOP NAV */}
-      <div className="bg-[#131921] text-white px-6 py-3 flex items-center gap-6">
+      <h1
+        className="font-bold text-xl cursor-pointer"
+        onClick={() => navigate("/")}
+      >
+        RentBridge
+      </h1>
 
-        {/* LOGO */}
-        <h1 className="text-xl font-bold cursor-pointer">
-          RentBridge
-        </h1>
-
-        {/* LOCATION */}
-        <div className="text-sm cursor-pointer">
-          <p className="text-gray-300 text-xs">Deliver to</p>
-          <p className="font-semibold">Aligarh</p>
-        </div>
-
-        {/* SEARCH BAR */}
-        <div className="flex flex-1 max-w-3xl">
-
-          {/* CATEGORY SELECT */}
-          <select className="bg-gray-200 text-black px-2 rounded-l-md outline-none">
-            <option>All</option>
-            <option>Electronics</option>
-            <option>Tools</option>
-            <option>Machinery</option>
-          </select>
-
-          {/* INPUT */}
+      {showSearch && (
+        <div className="flex-1 max-w-md mx-8">
           <input
             type="text"
             placeholder="Search products..."
-            className="flex-1 px-3 py-2 outline-none text-black"
+            value={searchValue}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg text-gray-900"
           />
-
-          {/* SEARCH BUTTON */}
-          <button className="bg-yellow-400 px-4 rounded-r-md hover:bg-yellow-500">
-            <FaSearch />
-          </button>
         </div>
+      )}
 
-        {/* PROFILE */}
-        <div className="flex items-center gap-2 cursor-pointer hover:underline">
-          <FaUser />
-          <span className="text-sm">Profile</span>
-        </div>
+      <div className="flex gap-4 items-center">
 
-        {/* CART */}
-        <div className="flex items-center gap-2 cursor-pointer hover:underline">
-          <FaShoppingCart />
-          <span className="text-sm">Cart</span>
-        </div>
-      </div>
+        <button
+          onClick={() => navigate("/cart")}
+          className="hover:text-gray-300 transition-colors"
+        >
+          🛒 Cart
+        </button>
 
-      {/* CATEGORY BAR */}
-      <div className="bg-[#232F3E] text-white px-6 py-2 flex gap-6 text-sm overflow-x-auto">
+        {user ? (
+          <>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="hover:text-gray-300 transition-colors"
+            >
+              👤 Profile
+            </button>
 
-        <span className="cursor-pointer hover:underline">All</span>
-        <span className="cursor-pointer hover:underline">Electronics</span>
-        <span className="cursor-pointer hover:underline">Tools</span>
-        <span className="cursor-pointer hover:underline">Machinery</span>
-        <span className="cursor-pointer hover:underline">Furniture</span>
-        <span className="cursor-pointer hover:underline">Vehicles</span>
-        <span className="cursor-pointer hover:underline">Heavy Equipment</span>
+            <button
+              onClick={() => navigate("/rent")}
+              className="hover:text-gray-300 transition-colors"
+            >
+              📅 Rent Section
+            </button>
+
+            <button
+              onClick={() => {
+                logout();
+                navigate("/");
+              }}
+              className="hover:text-gray-300 transition-colors"
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => navigate("/login")}
+              className="hover:text-gray-300 transition-colors"
+            >
+              Login
+            </button>
+
+            <button
+              onClick={() => navigate("/register")}
+              className="hover:text-gray-300 transition-colors"
+            >
+              Signup
+            </button>
+          </>
+        )}
 
       </div>
     </div>

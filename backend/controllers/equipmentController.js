@@ -11,6 +11,7 @@ exports.addEquipment = async (req, res) => {
     description,
     price_per_day,
     penalty_per_day,
+    category,
     available_from,
     available_to,
     image_url,
@@ -20,14 +21,15 @@ exports.addEquipment = async (req, res) => {
   try {
     const result = await pool.query(
       `INSERT INTO equipment
-      (title, description, price_per_day, penalty_per_day, owner_id, available_from, available_to, image_url, is_featured)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      (title, description, price_per_day, penalty_per_day, category, owner_id, available_from, available_to, image_url, is_featured)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
       RETURNING *`,
       [
         title,
         description,
         price_per_day,
         penalty_per_day,
+        category || 'General',
         req.user.userId,
         available_from || null,
         available_to || null,

@@ -74,6 +74,13 @@ app.use((err, req, res, next) => {
 // ✅ 8. START SERVER
 const PORT = process.env.PORT || 5000;
 
+// Initialize database tables
+createTables().then(() => {
+  console.log("Database tables initialized ✅");
+}).catch(err => {
+  console.error("Database initialization failed ❌", err);
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

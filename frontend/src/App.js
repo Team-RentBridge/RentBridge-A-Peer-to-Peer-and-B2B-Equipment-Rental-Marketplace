@@ -11,6 +11,7 @@ import Cart from "./pages/Cart";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import RentSection from "./pages/RentSection";
+import AddEquipment from "./pages/AddEquipment";
 
 function PrivateRoute({ children }) {
   const { user } = useContext(AuthContext);
@@ -43,6 +44,7 @@ function App() {
           <Route path="/admin" element={
             <AdminRoute><AdminDashboard /></AdminRoute>
           } />
+          <Route path="/add-equipment" element={<AddEquipment />} />
 
         </Routes>
       </BrowserRouter>

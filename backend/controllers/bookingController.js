@@ -5,8 +5,22 @@ exports.createBooking = async (req, res) => {
   const { equipment_id, start_date, end_date } = req.body;
 
   try {
+    // Get equipment info
+    const equipmentRes = await pool.query(
+      "SELECT * FROM equipment WHERE id=$1",
+      [equipment_id]
+    );
+    const equipment = equipmentRes.rows[0];
+    if (!equipment) {
+      return res.status(404).json({ message: "Equipment not found" });
+    }
 
-    // Check availability
+    // Check quantity
+    if (equipment.quantity <= 0) {
+      return res.status(400).json({ message: `No units available. Only ${equipment.quantity} left.`, quantity: equipment.quantity });
+    }
+
+    // Check date availability (optional, if you want to keep date-based booking)
     const check = await pool.query(
       `SELECT * FROM bookings
        WHERE equipment_id=$1
@@ -15,22 +29,14 @@ exports.createBooking = async (req, res) => {
     );
 
     if (check.rows.length > 0) {
-      return res.status(400).json({ message: "Equipment already booked" });
+      return res.status(400).json({ message: "Equipment already booked for these dates" });
     }
 
-    // Get equipment price
-    const equipment = await pool.query(
-      "SELECT * FROM equipment WHERE id=$1",
-      [equipment_id]
-    );
-
-    const price = equipment.rows[0].price_per_day;
-
-    // Calculate days
+    // Calculate price and days
+    const price = equipment.price_per_day;
     const days =
       Math.abs(new Date(end_date) - new Date(start_date)) /
         (1000 * 60 * 60 * 24) + 1;
-
     const total = price * days;
 
     // Insert booking
@@ -41,7 +47,13 @@ exports.createBooking = async (req, res) => {
       [req.user.userId, equipment_id, start_date, end_date, total]
     );
 
-    res.json(booking.rows[0]);
+    // Decrement equipment quantity
+    await pool.query(
+      "UPDATE equipment SET quantity = quantity - 1 WHERE id = $1",
+      [equipment_id]
+    );
+
+    res.json({ ...booking.rows[0], quantity_left: equipment.quantity - 1 });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -111,6 +123,12 @@ exports.returnEquipment = async (req, res) => {
     await pool.query(
       "UPDATE bookings SET status='completed' WHERE id=$1",
       [booking_id]
+    );
+
+    // Increment equipment quantity
+    await pool.query(
+      "UPDATE equipment SET quantity = quantity + 1 WHERE id = $1",
+      [booking.rows[0].equipment_id]
     );
 
     res.json({

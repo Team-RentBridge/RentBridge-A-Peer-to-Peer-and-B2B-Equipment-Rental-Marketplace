@@ -15,14 +15,15 @@ exports.addEquipment = async (req, res) => {
     available_from,
     available_to,
     image_url,
+    quantity,
     is_featured
   } = req.body;
 
   try {
     const result = await pool.query(
       `INSERT INTO equipment
-      (title, description, price_per_day, penalty_per_day, category, owner_id, available_from, available_to, image_url, is_featured)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      (title, description, price_per_day, penalty_per_day, category, owner_id, available_from, available_to, image_url, quantity, is_featured)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
       RETURNING *`,
       [
         title,
@@ -34,6 +35,7 @@ exports.addEquipment = async (req, res) => {
         available_from || null,
         available_to || null,
         image_url || null,
+        quantity || 1,
         is_featured || false
       ]
     );
@@ -78,7 +80,13 @@ exports.getEquipment = async (req, res) => {
 
     const result = await pool.query(query, values);
 
-    res.json(result.rows);
+    // Ensure quantity is included in the response
+    const equipmentWithQuantity = result.rows.map(equipment => ({
+      ...equipment,
+      quantity: equipment.quantity || 0
+    }));
+
+    res.json(equipmentWithQuantity);
 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -125,4 +133,30 @@ exports.deleteEquipment = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+};
+
+// Add a function to handle creating new equipment
+exports.createEquipment = async (req, res) => {
+    try {
+        const { name, description, image_url, price, quantity } = req.body;
+
+        // Validate input
+        if (!name || !price || !quantity) {
+            return res.status(400).json({ message: 'Name, price, and quantity are required.' });
+        }
+
+        // Create new equipment
+        const newEquipment = await Equipment.create({
+            name,
+            description,
+            image_url,
+            price,
+            quantity,
+        });
+
+        res.status(201).json(newEquipment);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };

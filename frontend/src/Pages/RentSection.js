@@ -29,7 +29,20 @@ function RentSection() {
         setLoading(false);
       });
   }, [user, navigate]);
-
+  const handleReturn = async (itemId) => {
+    try {
+      await API.post("/bookings/return", {
+        booking_id: itemId,
+        return_date: new Date().toISOString()
+      });
+      alert('Item returned successfully!');
+      // Refresh transactions
+      const res = await API.get("/user/transactions");
+      setTransactions(res.data);
+    } catch (err) {
+      alert('Failed to return item.');
+    }
+  };
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -145,7 +158,10 @@ function RentSection() {
                           View Details
                         </button>
                         {item.status === 'Active' && (
-                          <button className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                          <button
+                            className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                            onClick={() => handleReturn(item.id)}
+                          >
                             Return
                           </button>
                         )}

@@ -1,6 +1,7 @@
+
 import { useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 function Navbar({ showSearch = false, searchValue = "", onSearchChange = () => {} }) {
   const { user, logout } = useContext(AuthContext);
@@ -36,6 +37,8 @@ function Navbar({ showSearch = false, searchValue = "", onSearchChange = () => {
         >
           🛒 Cart
         </button>
+
+        <Link to="/add-equipment">Add Equipment</Link>
 
         {user ? (
           <>

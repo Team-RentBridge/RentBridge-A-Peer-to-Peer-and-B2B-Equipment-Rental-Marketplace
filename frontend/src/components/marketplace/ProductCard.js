@@ -46,9 +46,10 @@ const ProductCard = ({ product }) => {
       >
         <div className="relative">
           <img
-            src={product.image_url || '/placeholder.jpg'}
+            src={product.image_url || 'https://via.placeholder.com/400x300?text=No+Image'}
             alt={product.title}
             className="w-full h-48 object-cover"
+            onError={(e) => { e.target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Found'; }}
           />
           <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded text-sm">
             {product.owner_id ? 'Peer' : 'Business'}
@@ -63,6 +64,7 @@ const ProductCard = ({ product }) => {
             <div>
               <p className="text-green-600 font-semibold">₹{product.price_per_day}/day</p>
               <p className="text-gray-500 text-sm">Buy: ₹{product.price_per_day * 30}</p>
+              <p className="text-sm text-gray-600">Available: {product.quantity || 0} units</p>
             </div>
           </div>
 
@@ -114,8 +116,11 @@ const ProductCard = ({ product }) => {
                 <button className="flex-1 bg-orange-600 text-white py-2 rounded hover:bg-orange-700">
                   Buy
                 </button>
-                <button className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-                  Rent
+                <button
+                  onClick={(e) => { e.stopPropagation(); if (product.quantity > 0) navigate(`/product/${product.id}`); else alert('Out of stock'); }}
+                  className={`flex-1 py-2 rounded ${product.quantity > 0 ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-400 text-gray-600 cursor-not-allowed'}`}
+                >
+                  {product.quantity > 0 ? 'Rent' : 'Out of Stock'}
                 </button>
                 <button
                   onClick={addToCart}

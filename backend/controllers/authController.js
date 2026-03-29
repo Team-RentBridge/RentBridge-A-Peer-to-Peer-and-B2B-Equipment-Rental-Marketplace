@@ -8,7 +8,7 @@ SIGNUP
 ========================================
 */
 exports.signup = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   console.log("BODY:", req.body); // 🔥 Debug
 
@@ -23,7 +23,7 @@ exports.signup = async (req, res) => {
     // 🔐 hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ✅ insert user with default role
+    // ✅ insert user with default role (Admin registration is strictly internal)
     const result = await pool.query(
       `INSERT INTO users (name, email, password, role)
        VALUES ($1, $2, $3, $4)

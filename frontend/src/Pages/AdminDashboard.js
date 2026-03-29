@@ -51,10 +51,14 @@ function AdminDashboard() {
   );
 
   const adminStats = [
-    { label: "Total Users", value: stats?.total_users || 0, icon: Users, color: "text-blue-400" },
-    { label: "Total Equipment", value: stats?.total_equipment || 0, icon: Package, color: "text-purple-400" },
-    { label: "Revenue", value: `₹${stats?.total_revenue || 0}`, icon: IndianRupee, color: "text-green-400" },
-    { label: "Active Rentals", value: stats?.active_rentals || 0, icon: Activity, color: "text-primary-400" },
+    { label: "Total Peers", value: stats?.totalPeers || 0, icon: Users, color: "text-blue-400" },
+    { label: "Businesses", value: stats?.totalBusinesses || 0, icon: Package, color: "text-purple-400" },
+    { label: "Revenue", value: `₹${stats?.totalRevenue || 0}`, icon: IndianRupee, color: "text-green-400" },
+    { label: "Active Users", value: stats?.totalActiveUsers || 0, icon: Activity, color: "text-primary-400" },
+    { label: "Transactions", value: stats?.totalTransactions || 0, icon: TrendingUp, color: "text-orange-400" },
+    { label: "Daily Active", value: stats?.dailyActiveUsers || 0, icon: Activity, color: "text-cyan-400" },
+    { label: "Pending", value: stats?.pendingApprovals || 0, icon: ShieldCheck, color: "text-yellow-400" },
+    { label: "Issues", value: stats?.reportedIssues || 0, icon: ShieldCheck, color: "text-red-400" },
   ];
 
   return (
@@ -62,7 +66,7 @@ function AdminDashboard() {
       <Navbar />
       
       <main className="container mx-auto px-6">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-6">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-6 pt-32">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}

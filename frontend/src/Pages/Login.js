@@ -2,7 +2,7 @@ import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { motion } from "framer-motion";
-import { Mail, Lock, ArrowRight } from "lucide-react";
+import { Mail, Lock, ArrowRight, ShieldCheck, Users } from "lucide-react";
 import API from "../api/api";
 
 function Login() {
@@ -15,10 +15,16 @@ function Login() {
     e.preventDefault();
     try {
       const res = await API.post("/auth/login", { email, password });
-      login(res.data.user, res.data.token);
-      navigate("/dashboard");
+      login(res.data.token, res.data.user); // token first, then user
+      
+      // Redirect based on backend role
+      if (res.data.user.role === 'admin') {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
-      alert("Invalid credentials");
+      alert(err.response?.data?.message || "Invalid credentials. Please check your email/password.");
     }
   };
 
@@ -33,7 +39,7 @@ function Login() {
         <div className="glass-dark rounded-[2.5rem] p-10 border border-white/10 shadow-2xl">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-black text-white mb-2">Welcome Back</h2>
-            <p className="text-white/40 font-medium">Enter your details to access your account</p>
+            <p className="text-white/40 font-medium">Enter your credentials to access your portal</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

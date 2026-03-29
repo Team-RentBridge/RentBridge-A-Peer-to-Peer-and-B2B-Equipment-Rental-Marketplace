@@ -18,24 +18,32 @@ import Footer from "../components/layout/footer";
 function RentSection() {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [transactions, setTransactions] = useState(null);
+  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
+  const fetchTransactions = () => {
     API.get("/user/transactions")
       .then(res => {
-        setTransactions(res.data);
+        const borrowed = res.data.borrowed || [];
+        const lent = res.data.lent || [];
+        const combined = [...borrowed, ...lent].sort((a, b) => 
+          new Date(b.start_date) - new Date(a.start_date)
+        );
+        setTransactions(combined);
         setLoading(false);
       })
       .catch(err => {
         console.error("Failed to load transactions:", err);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    fetchTransactions();
   }, [user, navigate]);
 
   const handleReturn = async (itemId) => {
@@ -45,8 +53,7 @@ function RentSection() {
         return_date: new Date().toISOString()
       });
       alert('Item returned successfully!');
-      const res = await API.get("/user/transactions");
-      setTransactions(res.data);
+      fetchTransactions();
     } catch (err) {
       alert('Failed to return item.');
     }

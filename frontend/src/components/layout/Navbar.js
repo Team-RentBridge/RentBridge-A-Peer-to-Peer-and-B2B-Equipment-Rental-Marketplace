@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { motion } from "framer-motion";
-import { LogOut, User, LayoutDashboard, ShoppingCart } from "lucide-react";
+import { LogOut, User, LayoutDashboard, ShoppingCart, ShieldCheck } from "lucide-react";
 
 function Navbar() {
   const { user, logout } = useContext(AuthContext);
@@ -24,6 +24,12 @@ function Navbar() {
           <Link to="/rent" className="text-xs font-black text-white/50 hover:text-white transition-colors uppercase tracking-[0.2em]">Rent Out</Link>
           {user && (
             <Link to="/dashboard" className="text-xs font-black text-white/50 hover:text-white transition-colors uppercase tracking-[0.2em]">Dashboard</Link>
+          )}
+          {user?.role === 'admin' && (
+            <Link to="/admin" className="text-xs font-black text-primary-400 hover:text-primary-300 transition-colors uppercase tracking-[0.2em] flex items-center gap-2">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Admin
+            </Link>
           )}
         </div>
 

@@ -18,8 +18,8 @@ import Footer from "../components/layout/footer";
 function Dashboard() {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [stats, setStats] = useState(null);
-  const [transactions, setTransactions] = useState(null);
+  const [stats, setStats] = useState({});
+  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,8 +33,17 @@ function Dashboard() {
       API.get("/user/transactions")
     ])
       .then(([statsRes, transRes]) => {
-        setStats(statsRes.data);
-        setTransactions(transRes.data);
+        // Correctly handle the nested stats object from backend
+        setStats(statsRes.data.stats || {});
+        
+        // Combine borrowed and lent items into a single transactions array
+        const borrowed = transRes.data.borrowed || [];
+        const lent = transRes.data.lent || [];
+        const combined = [...borrowed, ...lent].sort((a, b) => 
+          new Date(b.start_date) - new Date(a.start_date)
+        );
+        
+        setTransactions(combined);
         setLoading(false);
       })
       .catch(err => {
@@ -50,10 +59,10 @@ function Dashboard() {
   );
 
   const statCards = [
-    { label: "Total Rentals", value: stats?.total_rentals || 0, icon: Package, color: "text-blue-400" },
-    { label: "Active Orders", value: stats?.active_rentals || 0, icon: Clock, color: "text-purple-400" },
-    { label: "Total Spent", value: `₹${stats?.total_spent || 0}`, icon: CreditCard, color: "text-green-400" },
-    { label: "Trust Score", value: "98%", icon: TrendingUp, color: "text-primary-400" },
+    { label: "Total Rentals", value: stats?.totalRentalsTaken || 0, icon: Package, color: "text-blue-400" },
+    { label: "Active Orders", value: stats?.activeRentals || 0, icon: Clock, color: "text-purple-400" },
+    { label: "Revenue Earned", value: `₹${stats?.totalRevenue || 0}`, icon: CreditCard, color: "text-green-400" },
+    { label: "Trust Score", value: `${(stats?.credibilityScore * 10).toFixed(0)}%` || "84%", icon: TrendingUp, color: "text-primary-400" },
   ];
 
   return (

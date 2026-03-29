@@ -1,22 +1,29 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, ArrowRight } from "lucide-react";
+import { AuthContext } from "../context/AuthContext";
 import API from "../api/api";
 
 function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post("/auth/register", { name, email, password });
-      navigate("/login");
+      const res = await API.post("/auth/register", { name, email, password });
+      
+      // Auto-login after successful registration
+      const loginRes = await API.post("/auth/login", { email, password });
+      login(loginRes.data.token, loginRes.data.user);
+
+      navigate("/dashboard");
     } catch (err) {
-      alert("Registration failed");
+      alert(err.response?.data?.message || "Registration failed. Please check your details.");
     }
   };
 
@@ -90,7 +97,7 @@ function Register() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit"
-              className="w-full bg-primary-600 hover:bg-primary-500 text-white py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary-500/20 mt-8"
+              className="w-full bg-primary-600 hover:bg-primary-500 text-white py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary-500/20 mt-8 uppercase tracking-widest"
             >
               Create Account
               <ArrowRight className="w-5 h-5" />

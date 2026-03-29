@@ -36,28 +36,34 @@ function ProductDetails() {
 
     setBookingLoading(true);
     try {
-      await API.post("/rentals/book", {
+      await API.post("/bookings/create", {
         equipment_id: id,
         start_date: startDate,
         end_date: endDate,
       });
-      alert("Booking Successful!");
+      alert("Booking Successful! Check your Dashboard.");
       navigate("/dashboard");
     } catch (err) {
-      alert("Booking failed");
+      alert(err.response?.data?.message || "Booking failed");
     } finally {
       setBookingLoading(false);
     }
   };
 
-  const addToCart = async () => {
+  const addToCart = () => {
     if (!user) return navigate("/login");
-    try {
-      await API.post("/cart/add", { equipment_id: id });
-      alert("Added to cart!");
-    } catch (err) {
-      alert("Failed to add to cart");
+    
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const existingItem = cart.find(item => item.id === product.id);
+    
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      cart.push({ ...product, quantity: 1 });
     }
+    
+    localStorage.setItem('cart', JSON.stringify(cart));
+    alert("Added to cart! 🛒");
   };
 
   if (loading) return (

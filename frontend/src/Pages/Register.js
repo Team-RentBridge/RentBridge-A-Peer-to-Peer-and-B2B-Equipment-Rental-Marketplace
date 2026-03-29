@@ -1,93 +1,112 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Mail, Lock, User, ArrowRight } from "lucide-react";
 import API from "../api/api";
 
 function Register() {
-  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
-  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
     try {
-      await API.post("/auth/signup", formData);
-      alert("Registration successful! Please login.");
+      await API.post("/auth/register", { name, email, password });
       navigate("/login");
     } catch (err) {
-      alert(err.response?.data?.message || "Registration failed");
-    } finally {
-      setLoading(false);
+      alert("Registration failed");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">Join RentBridge</h2>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name
-            </label>
-            <input
-              type="text"
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            />
+    <div className="min-h-screen flex items-center justify-center px-6 py-20 relative">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md relative z-10"
+      >
+        <div className="glass-dark rounded-[2.5rem] p-10 border border-white/10 shadow-2xl">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-black text-white mb-2">Join RentBridge</h2>
+            <p className="text-white/40 font-medium">Create your account to start building</p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-white/60 ml-1">Full Name</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/20 group-focus-within:text-primary-400 transition-colors">
+                  <User className="w-5 h-5" />
+                </div>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all"
+                  placeholder="John Doe"
+                  required
+                />
+              </div>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            />
-          </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-white/60 ml-1">Email Address</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/20 group-focus-within:text-primary-400 transition-colors">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all"
+                  placeholder="name@example.com"
+                  required
+                />
+              </div>
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-          >
-            {loading ? "Creating account..." : "Sign Up"}
-          </button>
-        </form>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-white/60 ml-1">Password</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/20 group-focus-within:text-primary-400 transition-colors">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+            </div>
 
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
-            Already have an account?{" "}
-            <button
-              onClick={() => navigate("/login")}
-              className="text-blue-600 hover:text-blue-800"
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              className="w-full bg-primary-600 hover:bg-primary-500 text-white py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary-500/20 mt-8"
             >
-              Login
-            </button>
-          </p>
+              Create Account
+              <ArrowRight className="w-5 h-5" />
+            </motion.button>
+          </form>
+
+          <div className="mt-8 pt-8 border-t border-white/5 text-center">
+            <p className="text-white/40 font-medium">
+              Already have an account?{" "}
+              <Link to="/login" className="text-primary-400 font-bold hover:text-primary-300 transition-colors">
+                Sign In
+              </Link>
+            </p>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

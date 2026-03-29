@@ -1,15 +1,23 @@
-import { useEffect, useState } from "react";
-import { useContext } from "react";
+import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Zap, 
+  ArrowRight, 
+  Clock, 
+  CheckCircle2, 
+  AlertCircle,
+  Truck,
+  RotateCcw
+} from "lucide-react";
 import API from "../api/api";
 import Navbar from "../components/layout/Navbar";
-import Footer from "../components/layout/Footer";
+import Footer from "../components/layout/footer";
 
 function RentSection() {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [mode, setMode] = useState("rent-from-peer");
   const [transactions, setTransactions] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -29,6 +37,7 @@ function RentSection() {
         setLoading(false);
       });
   }, [user, navigate]);
+
   const handleReturn = async (itemId) => {
     try {
       await API.post("/bookings/return", {
@@ -36,151 +45,123 @@ function RentSection() {
         return_date: new Date().toISOString()
       });
       alert('Item returned successfully!');
-      // Refresh transactions
       const res = await API.get("/user/transactions");
       setTransactions(res.data);
     } catch (err) {
       alert('Failed to return item.');
     }
   };
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">Loading...</div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
 
-  const getFilteredTransactions = () => {
-    if (!transactions) return [];
-
-    if (mode === "rent-from-peer") {
-      return transactions.borrowed;
-    } else {
-      return transactions.lent;
-    }
-  };
-
-  const filteredTransactions = getFilteredTransactions();
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen text-white">
       <Navbar />
+      
+      <main className="container mx-auto px-6">
+        <header className="mb-16">
+          <motion.h1 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-4xl font-black tracking-tight flex items-center gap-4"
+          >
+            <RotateCcw className="text-primary-500 w-10 h-10" />
+            Active Rentals
+          </motion.h1>
+          <p className="text-white/40 mt-4 font-medium italic">Track your current equipment leases and returns</p>
+        </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8 text-center">Rent Section</h1>
+        <div className="space-y-8 mb-20">
+          <AnimatePresence mode="popLayout">
+            {transactions?.map((item, idx) => (
+              <motion.div
+                key={item.id || idx}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ delay: idx * 0.1 }}
+                className="glass-dark p-8 rounded-[2.5rem] border border-white/5 flex flex-col lg:flex-row items-center gap-10 group"
+              >
+                {/* Equipment Preview */}
+                <div className="w-full lg:w-48 h-48 rounded-3xl overflow-hidden border border-white/10 flex-shrink-0">
+                  <img 
+                    src={item.image_url || "https://images.unsplash.com/photo-1581094288338-2314dddb7ede?auto=format&fit=crop&q=80&w=400"} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                    alt={item.title} 
+                  />
+                </div>
 
-        {/* Mode Selector */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-white rounded-lg shadow-md p-1 flex">
-            <button
-              onClick={() => setMode("rent-from-peer")}
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                mode === "rent-from-peer" ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
-              }`}
+                {/* Details */}
+                <div className="flex-1 space-y-4 text-center lg:text-left">
+                  <div>
+                    <h3 className="text-2xl font-black text-white group-hover:text-primary-400 transition-colors">{item.title}</h3>
+                    <p className="text-white/30 text-xs font-black uppercase tracking-[0.2em] mt-1">{item.category}</p>
+                  </div>
+                  
+                  <div className="flex flex-wrap justify-center lg:justify-start gap-6 pt-2">
+                    <div className="flex items-center gap-2 text-white/60">
+                      <Clock className="w-4 h-4 text-primary-500" />
+                      <span className="text-sm font-bold">Start: {new Date(item.start_date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white/60">
+                      <Truck className="w-4 h-4 text-primary-500" />
+                      <span className="text-sm font-bold">End: {new Date(item.end_date).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status & Actions */}
+                <div className="flex flex-col items-center lg:items-end gap-6 min-w-[200px]">
+                  <div className="text-right">
+                    <div className="text-2xl font-black text-white">₹{item.total_price}</div>
+                    <div className={`flex items-center gap-2 mt-1 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ${
+                      item.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 
+                      'bg-primary-500/20 text-primary-400 border-primary-500/30'
+                    }`}>
+                      {item.status === 'completed' ? <CheckCircle2 className="w-3 h-3" /> : <Zap className="w-3 h-3 animate-pulse" />}
+                      {item.status}
+                    </div>
+                  </div>
+
+                  {item.status !== 'completed' && (
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleReturn(item.id)}
+                      className="bg-white text-black px-8 py-3 rounded-xl font-black text-sm flex items-center gap-2 hover:bg-primary-500 hover:text-white transition-all shadow-xl"
+                    >
+                      Return Equipment
+                      <RotateCcw className="w-4 h-4" />
+                    </motion.button>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {(!transactions || transactions.length === 0) && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-24 glass-dark rounded-[3rem] border border-dashed border-white/10"
             >
-              Rent from Peer
-            </button>
-            <button
-              onClick={() => setMode("rent-from-business")}
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                mode === "rent-from-business" ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Rent from Business
-            </button>
-          </div>
+              <AlertCircle className="w-16 h-16 text-white/10 mx-auto mb-6" />
+              <p className="text-white/40 font-medium italic text-xl">No active rentals found at the moment.</p>
+              <button 
+                onClick={() => navigate('/marketplace')}
+                className="mt-10 bg-primary-600 hover:bg-primary-500 text-white px-10 py-4 rounded-2xl font-black text-lg transition-all shadow-lg shadow-primary-500/20"
+              >
+                Explore Marketplace
+              </button>
+            </motion.div>
+          )}
         </div>
-
-        {/* Live Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="px-6 py-4 border-b">
-            <h2 className="text-xl font-semibold">
-              {mode === "rent-from-peer" ? "Items Rented from Peers" : "Items Rented to Others"}
-            </h2>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-6 py-3 text-left">S.No.</th>
-                  <th className="px-6 py-3 text-left">Name</th>
-                  <th className="px-6 py-3 text-left">Quantity</th>
-                  <th className="px-6 py-3 text-left">Status</th>
-                  <th className="px-6 py-3 text-left">Live Countdown</th>
-                  <th className="px-6 py-3 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTransactions.map((item, index) => (
-                  <tr key={item.id} className="border-t hover:bg-gray-50">
-                    <td className="px-6 py-4">{index + 1}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <img
-                          src={item.image_url || '/placeholder.jpg'}
-                          alt={item.title}
-                          className="w-12 h-12 object-cover rounded mr-3"
-                        />
-                        <span className="font-medium">{item.title}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">1</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        item.status === 'Active' ? 'bg-green-100 text-green-800' :
-                        item.status === 'Overdue' ? 'bg-red-100 text-red-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {item.status === 'Overdue' ?
-                        <span className="text-red-600 font-semibold">
-                          Overdue by {Math.abs(Math.floor((new Date() - new Date(item.end_date)) / (1000 * 60 * 60 * 24)))} days
-                        </span> :
-                        item.status === 'Active' ?
-                        <span className="text-orange-600 font-semibold">
-                          Due in {Math.max(0, Math.floor((new Date(item.end_date) - new Date()) / (1000 * 60 * 60 * 24)))} days
-                        </span> :
-                        <span className="text-blue-600">Upcoming</span>
-                      }
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <button className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-                          View Details
-                        </button>
-                        {item.status === 'Active' && (
-                          <button
-                            className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-                            onClick={() => handleReturn(item.id)}
-                          >
-                            Return
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {filteredTransactions.length === 0 && (
-                  <tr>
-                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
-                      No {mode === "rent-from-peer" ? "rented items" : "lent items"} found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      </main>
 
       <Footer />
     </div>

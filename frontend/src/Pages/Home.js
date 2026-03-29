@@ -1,134 +1,128 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Footer from '../components/layout/Footer';
+import { motion } from 'framer-motion';
+import { Search, ArrowRight, ShieldCheck, Zap, Sparkles } from 'lucide-react';
+import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/footer';
 
 const Home = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">RentBridge</h1>
-          <button
-            onClick={() => navigate('/register')}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Sign Up
-          </button>
-        </div>
-      </header>
-
+    <div className="min-h-screen text-white relative">
+      <Navbar />
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Rent, Buy, or Sell Anything, Anytime
-          </h1>
-          <button
-            onClick={() => navigate('/register')}
-            className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-          >
-            Start Now
-          </button>
-        </div>
-      </section>
+      <section className="relative pt-32 pb-20 overflow-hidden min-h-screen flex items-center">
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-4xl mx-auto text-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-primary-500/30 text-primary-400 text-[10px] font-black mb-8 tracking-[0.3em] uppercase"
+            >
+              <Zap className="w-3 h-3 fill-primary-400" />
+              The Future of Equipment Rental
+            </motion.div>
 
-      {/* Key Features */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Choose RentBridge?</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🤝</span>
-              </div>
-              <h3 className="font-semibold mb-2">Peer-to-Peer Rentals</h3>
-              <p className="text-gray-600">Rent directly from individuals in your community</p>
-            </div>
-            <div className="text-center">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🏢</span>
-              </div>
-              <h3 className="font-semibold mb-2">Verified Business Listings</h3>
-              <p className="text-gray-600">Trusted businesses with guaranteed quality</p>
-            </div>
-            <div className="text-center">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📅</span>
-              </div>
-              <h3 className="font-semibold mb-2">Flexible Rent Periods</h3>
-              <p className="text-gray-600">Choose rental durations that fit your needs</p>
-            </div>
-            <div className="text-center">
-              <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🔒</span>
-              </div>
-              <h3 className="font-semibold mb-2">Secure Payments & Tracking</h3>
-              <p className="text-gray-600">Safe transactions with real-time status updates</p>
-            </div>
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-6xl md:text-9xl font-black tracking-tighter mb-8 leading-[0.85]"
+            >
+              Rent Anything. <br />
+              <span className="gradient-text drop-shadow-[0_0_50px_rgba(139,92,246,0.3)]">Build Everything.</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-xl md:text-2xl text-white/40 mb-12 font-medium leading-relaxed max-w-2xl mx-auto italic"
+            >
+              The world's first premium marketplace for elite equipment sharing. 
+              Secure, seamless, and powered by trust.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="flex flex-col sm:flex-row gap-6 justify-center"
+            >
+              <button
+                onClick={() => navigate('/marketplace')}
+                className="group bg-primary-600 hover:bg-primary-500 text-white px-12 py-6 rounded-2xl font-black text-xl flex items-center justify-center gap-4 transition-all shadow-[0_20px_50px_rgba(139,92,246,0.3)] hover:-translate-y-1 active:scale-95"
+              >
+                Explore Fleet
+                <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+              </button>
+              <button
+                onClick={() => navigate('/register')}
+                className="glass border border-white/10 hover:bg-white/10 text-white px-12 py-6 rounded-2xl font-black text-xl transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3"
+              >
+                Get Started
+                <Sparkles className="w-5 h-5 text-primary-400" />
+              </button>
+            </motion.div>
           </div>
         </div>
+
+        {/* Decorative elements */}
+        <motion.div 
+          animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[20%] right-[5%] w-64 h-64 glass-dark rounded-[3rem] border border-white/10 -z-10 opacity-20 hidden lg:block"
+        />
+        <motion.div 
+          animate={{ y: [0, 20, 0], rotate: [0, -5, 0] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute bottom-[20%] left-[5%] w-48 h-48 glass-dark rounded-full border border-white/10 -z-10 opacity-10 hidden lg:block"
+        />
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
+      {/* Features Grid */}
+      <section className="py-24 relative z-10">
+        <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold mb-4">Easy Renting</h3>
-              <p className="text-gray-600 mb-4">
-                Rent anything from peers or businesses with just a few clicks. Browse categories, select dates, and confirm your rental.
-              </p>
-              <ul className="text-gray-600 space-y-2">
-                <li>• Quick search and filter options</li>
-                <li>• Real-time availability checking</li>
-                <li>• Instant booking confirmation</li>
-              </ul>
-            </div>
-            <div className="bg-white p-8 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold mb-4">Fast Buying/Selling</h3>
-              <p className="text-gray-600 mb-4">
-                Just like any e-commerce marketplace. List your items for sale or purchase what you need instantly.
-              </p>
-              <ul className="text-gray-600 space-y-2">
-                <li>• Simple listing process</li>
-                <li>• Secure payment processing</li>
-                <li>• Buyer and seller protection</li>
-              </ul>
-            </div>
-            <div className="bg-white p-8 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold mb-4">Smart Calendars & Pricing</h3>
-              <p className="text-gray-600 mb-4">
-                Auto-calculated rent based on your selected dates. See pricing instantly as you choose your rental period.
-              </p>
-              <ul className="text-gray-600 space-y-2">
-                <li>• Dynamic price calculation</li>
-                <li>• Calendar integration</li>
-                <li>• Transparent pricing</li>
-              </ul>
-            </div>
+            {[
+              { 
+                title: 'Peer-to-Peer', 
+                desc: 'Rent tools directly from verified locals in your community.',
+                icon: Zap,
+                color: 'text-primary-400'
+              },
+              { 
+                title: 'Secure Escrow', 
+                desc: 'Payments are held safely until you confirm delivery.',
+                icon: ShieldCheck,
+                color: 'text-green-400'
+              },
+              { 
+                title: 'B2B Machinery', 
+                desc: 'Access heavy construction equipment for large projects.',
+                icon: Sparkles,
+                color: 'text-indigo-400'
+              },
+            ].map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                whileHover={{ y: -10 }}
+                className="glass-dark p-10 rounded-[2.5rem] border border-white/5 hover:border-primary-500/30 transition-all group"
+              >
+                <div className={`w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform ${feature.color}`}>
+                  <feature.icon className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4 tracking-tight">{feature.title}</h3>
+                <p className="text-white/40 leading-relaxed text-lg">{feature.desc}</p>
+              </motion.div>
+            ))}
           </div>
-        </div>
-      </section>
-
-      {/* About Us Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-8">About RentBridge</h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
-            RentBridge is your go-to platform for peer-to-peer and business-to-business equipment rentals.
-            Whether you're a student looking for affordable study materials, a professional needing tools for a project,
-            or a business seeking reliable equipment, RentBridge connects you with the right items at the right time.
-            We're committed to making renting easy, affordable, and flexible for everyone.
-          </p>
-          <button
-            onClick={() => navigate('/register')}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            Sign up now to start renting
-          </button>
         </div>
       </section>
 

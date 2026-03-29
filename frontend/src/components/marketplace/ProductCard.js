@@ -1,147 +1,60 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { ArrowRight, Tag } from "lucide-react";
 
-const ProductCard = ({ product }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [quantity, setQuantity] = useState(1);
-  const navigate = useNavigate();
-
-  const handleCardClick = (e) => {
-    // Don't expand if clicking on buttons
-    if (e.target.tagName === 'BUTTON') return;
-    setIsExpanded(!isExpanded);
-  };
-
-  const addToCart = () => {
-    const cartItem = {
-      id: product.id,
-      title: product.title,
-      image_url: product.image_url,
-      price_per_day: product.price_per_day,
-      quantity: quantity,
-      type: 'buy' // or 'rent' based on selection
-    };
-
-    const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const existingIndex = existingCart.findIndex(item => item.id === product.id);
-
-    if (existingIndex >= 0) {
-      existingCart[existingIndex].quantity += quantity;
-    } else {
-      existingCart.push(cartItem);
-    }
-
-    localStorage.setItem('cart', JSON.stringify(existingCart));
-    alert('Added to cart!');
-    setIsExpanded(false);
-  };
-
+function ProductCard({ product }) {
   return (
-    <>
-      <div
-        className={`bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transition-all duration-300 ${
-          isExpanded ? 'fixed inset-4 z-50 max-w-2xl mx-auto' : 'hover:shadow-lg'
-        }`}
-        onClick={handleCardClick}
-      >
-        <div className="relative">
-          <img
-            src={product.image_url || 'https://via.placeholder.com/400x300?text=No+Image'}
-            alt={product.title}
-            className="w-full h-48 object-cover"
-            onError={(e) => { e.target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Found'; }}
-          />
-          <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded text-sm">
-            {product.owner_id ? 'Peer' : 'Business'}
-          </div>
-        </div>
-
-        <div className="p-4">
-          <h3 className="font-semibold text-lg mb-2">{product.title}</h3>
-          <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
-
-          <div className="flex justify-between items-center mb-3">
-            <div>
-              <p className="text-green-600 font-semibold">₹{product.price_per_day}/day</p>
-              <p className="text-gray-500 text-sm">Buy: ₹{product.price_per_day * 30}</p>
-              <p className="text-sm text-gray-600">Available: {product.quantity || 0} units</p>
-            </div>
-          </div>
-
-          {!isExpanded && (
-            <div className="flex gap-2">
-              <button
-                onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.id}`); }}
-                className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-              >
-                View Details
-              </button>
-            </div>
-          )}
-
-          {isExpanded && (
-            <div className="space-y-4">
-              <div className="border-t pt-4">
-                <h4 className="font-semibold mb-2">Rent Options</h4>
-                <div className="space-y-2">
-                  <button className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
-                    Take this item for rent
-                  </button>
-                  <button className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">
-                    Give this item for rent
-                  </button>
-                </div>
-              </div>
-
-              <div className="border-t pt-4">
-                <h4 className="font-semibold mb-2">Quantity</h4>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="bg-gray-200 px-3 py-1 rounded"
-                  >
-                    -
-                  </button>
-                  <span className="px-3">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="bg-gray-200 px-3 py-1 rounded"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <button className="flex-1 bg-orange-600 text-white py-2 rounded hover:bg-orange-700">
-                  Buy
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); if (product.quantity > 0) navigate(`/product/${product.id}`); else alert('Out of stock'); }}
-                  className={`flex-1 py-2 rounded ${product.quantity > 0 ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-400 text-gray-600 cursor-not-allowed'}`}
-                >
-                  {product.quantity > 0 ? 'Rent' : 'Out of Stock'}
-                </button>
-                <button
-                  onClick={addToCart}
-                  className="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700"
-                >
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          )}
+    <motion.div
+      whileHover={{ y: -10 }}
+      className="group relative glass-dark rounded-[2rem] overflow-hidden border border-white/5 hover:border-primary-500/30 transition-all duration-500 shadow-2xl"
+    >
+      <div className="relative h-64 overflow-hidden">
+        <img
+          src={product.image_url || "https://images.unsplash.com/photo-1581094288338-2314dddb7ede?auto=format&fit=crop&q=80&w=800"}
+          alt={product.title}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+        
+        <div className="absolute top-4 left-4">
+          <span className="px-3 py-1.5 glass backdrop-blur-md border border-white/10 text-[10px] font-black text-white uppercase tracking-widest rounded-full">
+            {product.category}
+          </span>
         </div>
       </div>
 
-      {isExpanded && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setIsExpanded(false)}
-        />
-      )}
-    </>
+      <div className="p-8">
+        <h3 className="text-xl font-bold text-white mb-2 line-clamp-1 group-hover:text-primary-400 transition-colors">
+          {product.title}
+        </h3>
+        
+        <p className="text-white/40 text-sm mb-6 line-clamp-2 font-medium leading-relaxed italic">
+          {product.description || "Premium equipment maintained to the highest standards."}
+        </p>
+
+        <div className="flex items-center justify-between mt-auto">
+          <div>
+            <span className="text-2xl font-black text-white">₹{product.price_per_day}</span>
+            <span className="text-white/30 text-xs font-bold uppercase ml-1 tracking-tighter">/ day</span>
+          </div>
+          
+          <Link to={`/product/${product.id}`}>
+            <motion.button
+              whileHover={{ x: 5 }}
+              className="p-3 bg-primary-600 hover:bg-primary-500 rounded-xl text-white shadow-lg shadow-primary-500/20 transition-all group/btn"
+            >
+              <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+            </motion.button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Decorative hover glow */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+        <div className="absolute -inset-[1px] bg-gradient-to-r from-primary-500/20 to-indigo-500/20 rounded-[2rem] blur-md" />
+      </div>
+    </motion.div>
   );
-};
+}
 
 export default ProductCard;

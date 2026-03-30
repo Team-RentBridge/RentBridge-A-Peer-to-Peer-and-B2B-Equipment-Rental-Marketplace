@@ -2,14 +2,14 @@ import { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { motion } from "framer-motion";
-import { LogOut, User, LayoutDashboard, ShoppingCart, ShieldCheck } from "lucide-react";
+import { LogOut, ShoppingCart, ShieldCheck } from "lucide-react";
 
 function Navbar() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
   return (
-    <motion.nav 
+    <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       className="fixed top-0 left-0 right-0 z-50 w-full glass-dark border-b border-white/10 backdrop-blur-xl"
@@ -19,11 +19,14 @@ function Navbar() {
           RentBridge<span className="text-primary-500">.</span>
         </Link>
 
+        {/* Nav links — only visible when signed in */}
         <div className="hidden md:flex items-center gap-10">
-          <Link to="/marketplace" className="text-xs font-black text-white/50 hover:text-white transition-colors uppercase tracking-[0.2em]">Marketplace</Link>
-          <Link to="/rent" className="text-xs font-black text-white/50 hover:text-white transition-colors uppercase tracking-[0.2em]">Rent Out</Link>
           {user && (
-            <Link to="/dashboard" className="text-xs font-black text-white/50 hover:text-white transition-colors uppercase tracking-[0.2em]">Dashboard</Link>
+            <>
+              <Link to="/marketplace" className="text-xs font-black text-white/50 hover:text-white transition-colors uppercase tracking-[0.2em]">Marketplace</Link>
+              <Link to="/rent" className="text-xs font-black text-white/50 hover:text-white transition-colors uppercase tracking-[0.2em]">Rent Out</Link>
+              <Link to="/dashboard" className="text-xs font-black text-white/50 hover:text-white transition-colors uppercase tracking-[0.2em]">Dashboard</Link>
+            </>
           )}
           {user?.role === 'admin' && (
             <Link to="/admin" className="text-xs font-black text-primary-400 hover:text-primary-300 transition-colors uppercase tracking-[0.2em] flex items-center gap-2">
@@ -33,6 +36,7 @@ function Navbar() {
           )}
         </div>
 
+        {/* Right side actions */}
         <div className="flex items-center gap-6">
           {user ? (
             <>
@@ -58,17 +62,13 @@ function Navbar() {
               </div>
             </>
           ) : (
-            <div className="flex items-center gap-4">
-              <Link to="/login" className="text-xs font-black text-white/50 hover:text-white transition-colors px-4 py-2 uppercase tracking-widest">
-                Sign In
-              </Link>
-              <Link
-                to="/register"
-                className="bg-primary-600 hover:bg-primary-500 text-white px-8 py-3 rounded-xl font-black text-xs transition-all shadow-[0_0_30px_rgba(139,92,246,0.3)] hover:-translate-y-1 active:scale-95 uppercase tracking-widest"
-              >
-                Get Started
-              </Link>
-            </div>
+            /* Not signed in — show only Get Started */
+            <Link
+              to="/register"
+              className="bg-primary-600 hover:bg-primary-500 text-white px-8 py-3 rounded-xl font-black text-xs transition-all shadow-[0_0_30px_rgba(139,92,246,0.3)] hover:-translate-y-1 active:scale-95 uppercase tracking-widest"
+            >
+              Get Started
+            </Link>
           )}
         </div>
       </div>

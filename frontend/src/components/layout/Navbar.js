@@ -24,7 +24,8 @@ function Navbar() {
           {user && (
             <>
               <Link to="/marketplace" className="text-xs font-black text-white/50 hover:text-white transition-colors uppercase tracking-[0.2em]">Marketplace</Link>
-              <Link to="/rent" className="text-xs font-black text-white/50 hover:text-white transition-colors uppercase tracking-[0.2em]">Rent Out</Link>
+              <Link to="/rent" className="text-xs font-black text-white/50 hover:text-white transition-colors uppercase tracking-[0.2em]">My Rentals</Link>
+              <Link to="/add-equipment" className="text-xs font-black text-white/50 hover:text-white transition-colors uppercase tracking-[0.2em]">Rent Out</Link>
               <Link to="/dashboard" className="text-xs font-black text-white/50 hover:text-white transition-colors uppercase tracking-[0.2em]">Dashboard</Link>
             </>
           )}

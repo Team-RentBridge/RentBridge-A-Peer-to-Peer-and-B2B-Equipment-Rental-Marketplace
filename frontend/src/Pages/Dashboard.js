@@ -14,6 +14,7 @@ import {
 import API from "../api/api";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/footer";
+import AddEquipmentForm from "../components/dashboard/AddEquipmentForm";
 
 function Dashboard() {
   const { user } = useContext(AuthContext);
@@ -21,6 +22,7 @@ function Dashboard() {
   const [stats, setStats] = useState({});
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     if (!user) {
@@ -62,7 +64,7 @@ function Dashboard() {
     { label: "Total Rentals", value: stats?.totalRentalsTaken || 0, icon: Package, color: "text-blue-400" },
     { label: "Active Orders", value: stats?.activeRentals || 0, icon: Clock, color: "text-purple-400" },
     { label: "Revenue Earned", value: `₹${stats?.totalRevenue || 0}`, icon: CreditCard, color: "text-green-400" },
-    { label: "Trust Score", value: `${(stats?.credibilityScore * 10).toFixed(0)}%` || "84%", icon: TrendingUp, color: "text-primary-400" },
+    { label: "Trust Score", value: stats?.credibilityScore ? `${(stats.credibilityScore * 10).toFixed(0)}%` : "84%", icon: TrendingUp, color: "text-primary-400" },
   ];
 
   return (
@@ -70,13 +72,13 @@ function Dashboard() {
       <Navbar />
       
       <main className="container mx-auto px-6">
-        <header className="mb-16">
+        <header className="mb-16 pt-32 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-4 mb-4"
+            className="flex items-center gap-4"
           >
-            <div className="w-12 h-12 rounded-2xl bg-primary-600 flex items-center justify-center font-black text-xl">
+            <div className="w-12 h-12 rounded-2xl bg-primary-600 flex items-center justify-center font-black text-xl flex-shrink-0">
               {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
             </div>
             <div>
@@ -84,9 +86,30 @@ function Dashboard() {
               <p className="text-white/40 font-medium italic">Manage your rentals and project fleet</p>
             </div>
           </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex bg-white/5 p-1 rounded-2xl border border-white/10 flex-shrink-0"
+          >
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-6 py-3 rounded-xl font-black text-sm transition-all ${activeTab === 'overview' ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20' : 'text-white/40 hover:text-white'}`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('add')}
+              className={`px-6 py-3 rounded-xl font-black text-sm transition-all flex items-center gap-2 ${activeTab === 'add' ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20' : 'text-white/40 hover:text-white'}`}
+            >
+              <Package className="w-5 h-5" />
+              Add Equipment
+            </button>
+          </motion.div>
         </header>
 
-        {/* Stats Grid */}
+        {activeTab === 'overview' ? (
+          <>
+            {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           {statCards.map((stat, idx) => (
             <motion.div
@@ -172,6 +195,20 @@ function Dashboard() {
             </table>
           </div>
         </motion.section>
+        </>
+        ) : (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-dark rounded-[2.5rem] p-8 md:p-12 border border-white/10 shadow-2xl mb-20"
+          >
+            <div className="mb-10 text-center">
+               <h2 className="text-3xl font-black tracking-tight mb-2">List New Equipment</h2>
+               <p className="text-white/40">Turn your idle assets into a steady stream of passive income</p>
+            </div>
+            <AddEquipmentForm onSuccess={() => setActiveTab('overview')} />
+          </motion.section>
+        )}
       </main>
 
       <Footer />

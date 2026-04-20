@@ -7,61 +7,108 @@ GET ADMIN STATS
 */
 exports.getAdminStats = async (req, res) => {
   try {
-    // Total businesses (users with role 'business' or equipment owners)
-    const totalBusinesses = await pool.query(
-      "SELECT COUNT(DISTINCT owner_id) as count FROM equipment"
-    );
+    const safeQuery = async (sql, fallback = 0) => {
+      try {
+        const result = await pool.query(sql);
+        return result.rows[0];
+      } catch (e) {
+        return { count: fallback, revenue: fallback, avg_rating: fallback, total: fallback };
+      }
+    };
 
-    // Total peers (regular users)
-    const totalPeers = await pool.query(
-      "SELECT COUNT(*) as count FROM users WHERE role = 'user'"
-    );
-
-    // Total transactions (completed bookings)
-    const totalTransactions = await pool.query(
-      "SELECT COUNT(*) as count FROM bookings WHERE status = 'completed'"
-    );
-
-    // Total active users (users with recent activity)
-    const totalActiveUsers = await pool.query(
-      `SELECT COUNT(DISTINCT user_id) as count FROM bookings
-       WHERE start_date >= CURRENT_DATE - INTERVAL '30 days'`
-    );
-
-    // Daily active users
-    const dailyActiveUsers = await pool.query(
-      `SELECT COUNT(DISTINCT user_id) as count FROM bookings
-       WHERE DATE(start_date) = CURRENT_DATE`
-    );
-
-    // Total revenue
-    const totalRevenue = await pool.query(
-      "SELECT COALESCE(SUM(total_price), 0) as revenue FROM bookings WHERE status = 'completed'"
-    );
-
-    // Pending approvals (pending bookings or equipment)
-    const pendingApprovals = await pool.query(
-      "SELECT COUNT(*) as count FROM bookings WHERE status = 'pending'"
-    );
-
-    // Reported issues (assuming a reports table, for now use pending bookings)
-    const reportedIssues = await pool.query(
-      "SELECT COUNT(*) as count FROM bookings WHERE status = 'disputed'"
-    );
+    const [
+      totalBusinesses,
+      totalPeers,
+      totalTransactions,
+      totalActiveUsers,
+      dailyActiveUsers,
+      totalRevenue,
+      pendingApprovals,
+      reportedIssues,
+      totalEquipment,
+      totalReviews,
+    ] = await Promise.all([
+      safeQuery("SELECT COUNT(DISTINCT owner_id) as count FROM equipment"),
+      safeQuery("SELECT COUNT(*) as count FROM users"),
+      safeQuery("SELECT COUNT(*) as count FROM bookings WHERE status = 'completed'"),
+      safeQuery(`SELECT COUNT(DISTINCT user_id) as count FROM bookings WHERE start_date >= CURRENT_DATE - INTERVAL '30 days'`),
+      safeQuery(`SELECT COUNT(DISTINCT user_id) as count FROM bookings WHERE DATE(start_date) = CURRENT_DATE`),
+      safeQuery("SELECT COALESCE(SUM(total_price), 0) as revenue FROM bookings WHERE status = 'completed'"),
+      safeQuery("SELECT COUNT(*) as count FROM bookings WHERE status = 'pending'"),
+      safeQuery("SELECT COUNT(*) as count FROM bookings WHERE status = 'disputed'"),
+      safeQuery("SELECT COUNT(*) as count FROM equipment"),
+      safeQuery("SELECT COUNT(*) as count FROM reviews"),
+    ]);
 
     res.json({
-      totalBusinesses: parseInt(totalBusinesses.rows[0].count),
-      totalPeers: parseInt(totalPeers.rows[0].count),
-      totalTransactions: parseInt(totalTransactions.rows[0].count),
-      totalActiveUsers: parseInt(totalActiveUsers.rows[0].count),
-      dailyActiveUsers: parseInt(dailyActiveUsers.rows[0].count),
-      totalRevenue: parseFloat(totalRevenue.rows[0].revenue),
-      pendingApprovals: parseInt(pendingApprovals.rows[0].count),
-      reportedIssues: parseInt(reportedIssues.rows[0].count)
+      totalBusinesses: parseInt(totalBusinesses.count) || 0,
+      totalPeers: parseInt(totalPeers.count) || 0,
+      totalTransactions: parseInt(totalTransactions.count) || 0,
+      totalActiveUsers: parseInt(totalActiveUsers.count) || 0,
+      dailyActiveUsers: parseInt(dailyActiveUsers.count) || 0,
+      totalRevenue: parseFloat(totalRevenue.revenue) || 0,
+      pendingApprovals: parseInt(pendingApprovals.count) || 0,
+      reportedIssues: parseInt(reportedIssues.count) || 0,
+      totalEquipment: parseInt(totalEquipment.count) || 0,
+      totalReviews: parseInt(totalReviews.count) || 0,
     });
 
   } catch (err) {
     console.error("GET ADMIN STATS ERROR:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+/*
+========================================
+GET ALL USERS (Admin only)
+========================================
+*/
+exports.getAllUsers = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, email, role FROM users ORDER BY id DESC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("GET ALL USERS ERROR:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+/*
+========================================
+GET ALL BOOKINGS (Admin only)
+========================================
+*/
+exports.getAllBookings = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT b.*, e.title as equipment_title, u.name as renter_name
+       FROM bookings b
+       JOIN equipment e ON b.equipment_id = e.id
+       JOIN users u ON b.user_id = u.id
+       ORDER BY b.id DESC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("GET ALL BOOKINGS ERROR:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+/*
+========================================
+DELETE USER (Admin only)
+========================================
+*/
+exports.deleteUser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query("DELETE FROM users WHERE id = $1", [id]);
+    res.json({ message: "User deleted successfully" });
+  } catch (err) {
+    console.error("DELETE USER ERROR:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };

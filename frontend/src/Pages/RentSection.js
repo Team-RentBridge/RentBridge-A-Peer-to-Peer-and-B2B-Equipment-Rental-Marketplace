@@ -70,7 +70,7 @@ function RentSection() {
       <Navbar />
       
       <main className="container mx-auto px-6">
-        <header className="mb-16">
+        <header className="mb-16 pt-32">
           <motion.h1 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}

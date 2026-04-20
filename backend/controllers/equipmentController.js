@@ -134,29 +134,4 @@ exports.deleteEquipment = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-// Add a function to handle creating new equipment
-exports.createEquipment = async (req, res) => {
-    try {
-        const { name, description, image_url, price, quantity } = req.body;
-
-        // Validate input
-        if (!name || !price || !quantity) {
-            return res.status(400).json({ message: 'Name, price, and quantity are required.' });
-        }
-
-        // Create new equipment
-        const newEquipment = await Equipment.create({
-            name,
-            description,
-            image_url,
-            price,
-            quantity,
-        });
-
-        res.status(201).json(newEquipment);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
+

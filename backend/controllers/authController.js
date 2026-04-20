@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 /*
 ========================================
-SIGNUP
+SIGNUP (regular users only)
 ========================================
 */
 exports.signup = async (req, res) => {
@@ -23,7 +23,7 @@ exports.signup = async (req, res) => {
     // 🔐 hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ✅ insert user with default role (Admin registration is strictly internal)
+    // ✅ insert user (Admin registration is strictly via admin table, not here)
     const result = await pool.query(
       `INSERT INTO users (name, email, password, role)
        VALUES ($1, $2, $3, $4)
@@ -56,7 +56,7 @@ exports.signup = async (req, res) => {
 
 /*
 ========================================
-LOGIN
+LOGIN — checks admin table first, then users table
 ========================================
 */
 exports.login = async (req, res) => {
@@ -70,33 +70,63 @@ exports.login = async (req, res) => {
       });
     }
 
-    // 🔍 find user
-    const user = await pool.query(
+    // 🔍 Check admin table first
+    const adminResult = await pool.query(
+      "SELECT * FROM admin WHERE email = $1",
+      [email]
+    );
+
+    if (adminResult.rows.length > 0) {
+      const admin = adminResult.rows[0];
+
+      // 🔐 compare password
+      const valid = await bcrypt.compare(password, admin.password);
+      if (!valid) {
+        return res.status(400).json({ message: "Invalid password" });
+      }
+
+      // 🔑 generate token with isAdmin flag
+      const token = jwt.sign(
+        { adminId: admin.id, isAdmin: true },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+
+      return res.json({
+        message: "Admin login successful ✅",
+        token,
+        user: {
+          id: admin.id,
+          name: "Admin",
+          email: admin.email,
+          role: "admin",
+        },
+      });
+    }
+
+    // 🔍 fall through — check users table
+    const userResult = await pool.query(
       "SELECT * FROM users WHERE email = $1",
       [email]
     );
 
-    if (user.rows.length === 0) {
+    if (userResult.rows.length === 0) {
       return res.status(400).json({
         message: "User not found",
       });
     }
 
-    // 🔐 compare password
-    const valid = await bcrypt.compare(
-      password,
-      user.rows[0].password
-    );
+    const user = userResult.rows[0];
 
+    // 🔐 compare password
+    const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
-      return res.status(400).json({
-        message: "Invalid password",
-      });
+      return res.status(400).json({ message: "Invalid password" });
     }
 
     // 🔑 generate token
     const token = jwt.sign(
-      { userId: user.rows[0].id },
+      { userId: user.id, isAdmin: false },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
@@ -105,10 +135,10 @@ exports.login = async (req, res) => {
       message: "Login successful ✅",
       token,
       user: {
-        id: user.rows[0].id,
-        name: user.rows[0].name,
-        email: user.rows[0].email,
-        role: user.rows[0].role,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
       },
     });
 

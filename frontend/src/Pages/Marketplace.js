@@ -28,7 +28,7 @@ function Marketplace() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6"
+          className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 pt-32"
         >
           <h1 className="text-4xl font-black tracking-tight">Marketplace</h1>
           

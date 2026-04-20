@@ -7,22 +7,18 @@ const {
   getEquipment,
   getEquipmentById,
   deleteEquipment,
-  createEquipment
 } = require("../controllers/equipmentController");
 
-// Add equipment
+// Add equipment (authenticated)
 router.post("/add", auth, addEquipment);
 
-// Add a route for creating new equipment
-router.post("/", createEquipment);
-
-// Get all equipment (filters + featured)
+// Get all equipment (filters + featured) — public
 router.get("/", getEquipment);
 
-// Get single equipment
+// Get single equipment — public
 router.get("/:id", getEquipmentById);
 
-// Delete equipment
+// Delete equipment (authenticated)
 router.delete("/:id", auth, deleteEquipment);
 
 module.exports = router;

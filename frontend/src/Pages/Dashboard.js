@@ -54,6 +54,21 @@ function Dashboard() {
       });
   }, [user, navigate]);
 
+  const handleReturn = async (bookingId) => {
+    try {
+      const res = await API.post("/bookings/return", {
+        booking_id: bookingId,
+        return_date: new Date().toISOString()
+      });
+      alert(`Item returned successfully! ${res.data.lateDays > 0 ? 'Late penalty applied: ' + res.data.penalty : ''}`);
+      
+      // Refresh transactions locally
+      setTransactions(prev => prev.map(t => t.id === bookingId ? { ...t, status: 'completed' } : t));
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to process return.");
+    }
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
@@ -178,9 +193,16 @@ function Dashboard() {
                       </span>
                     </td>
                     <td className="px-10 py-8 text-right">
-                      <button className="p-3 bg-white/5 rounded-xl hover:bg-primary-600 transition-all">
-                        <ArrowUpRight className="w-4 h-4" />
-                      </button>
+                      {t.status === 'completed' ? (
+                        <span className="text-xs font-bold text-white/20 uppercase tracking-widest">Returned</span>
+                      ) : (
+                        <button 
+                          onClick={() => handleReturn(t.id)}
+                          className="px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl font-bold text-xs transition-all shadow-lg shadow-primary-500/20 active:scale-95"
+                        >
+                          Return Item
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

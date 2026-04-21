@@ -99,6 +99,7 @@ exports.getUserTransactions = async (req, res) => {
     const borrowedItems = await pool.query(
       `SELECT b.*, e.title, e.image_url,
        CASE
+         WHEN b.status = 'completed' THEN 'completed'
          WHEN CURRENT_DATE > b.end_date THEN 'Overdue'
          WHEN CURRENT_DATE <= b.end_date AND CURRENT_DATE >= b.start_date THEN 'Active'
          ELSE 'Upcoming'
@@ -119,6 +120,7 @@ exports.getUserTransactions = async (req, res) => {
     const lentItems = await pool.query(
       `SELECT b.*, e.title, e.image_url, u.name as borrower_name,
        CASE
+         WHEN b.status = 'completed' THEN 'completed'
          WHEN CURRENT_DATE > b.end_date THEN 'Overdue'
          WHEN CURRENT_DATE <= b.end_date AND CURRENT_DATE >= b.start_date THEN 'Active'
          ELSE 'Upcoming'

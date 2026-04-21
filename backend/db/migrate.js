@@ -25,6 +25,9 @@ const bcrypt = require('bcryptjs');
     await pool.query(`ALTER TABLE equipment ADD COLUMN IF NOT EXISTS quantity INTEGER DEFAULT 1`).catch(() => {});
     // Add role to users if missing
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'user'`).catch(() => {});
+    
+    // Add quantity to bookings if missing
+    await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS quantity INTEGER DEFAULT 1`).catch(() => {});
     console.log('✅ equipment columns ready');
 
     // Create payments table
@@ -70,7 +73,7 @@ const bcrypt = require('bcryptjs');
     console.log('🎉 Migration complete!');
     process.exit(0);
   } catch (err) {
-    console.error('❌ Migration error:', err.message);
+    console.error('❌ Migration error:', err);
     process.exit(1);
   }
 })();

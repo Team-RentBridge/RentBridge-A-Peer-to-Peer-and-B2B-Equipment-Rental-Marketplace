@@ -2,7 +2,7 @@ const pool = require("../config/db");
 
 // CREATE BOOKING
 exports.createBooking = async (req, res) => {
-  const { equipment_id, start_date, end_date } = req.body;
+  const { equipment_id, start_date, end_date, quantity = 1 } = req.body;
 
   try {
     // Get equipment info
@@ -16,44 +16,33 @@ exports.createBooking = async (req, res) => {
     }
 
     // Check quantity
-    if (equipment.quantity <= 0) {
-      return res.status(400).json({ message: `No units available. Only ${equipment.quantity} left.`, quantity: equipment.quantity });
+    if (equipment.quantity < quantity) {
+      return res.status(400).json({ message: `Not enough units available. Only ${equipment.quantity} left.`, quantity: equipment.quantity });
     }
 
-    // Check date availability (optional, if you want to keep date-based booking)
-    const check = await pool.query(
-      `SELECT * FROM bookings
-       WHERE equipment_id=$1
-       AND (start_date <= $3 AND end_date >= $2)`,
-      [equipment_id, start_date, end_date]
-    );
-
-    if (check.rows.length > 0) {
-      return res.status(400).json({ message: "Equipment already booked for these dates" });
-    }
 
     // Calculate price and days
     const price = equipment.price_per_day;
     const days =
       Math.abs(new Date(end_date) - new Date(start_date)) /
         (1000 * 60 * 60 * 24) + 1;
-    const total = price * days;
+    const total = price * days * quantity;
 
     // Insert booking
     const booking = await pool.query(
-      `INSERT INTO bookings(user_id,equipment_id,start_date,end_date,total_price,status)
-       VALUES($1,$2,$3,$4,$5,'pending')
+      `INSERT INTO bookings(user_id,equipment_id,start_date,end_date,quantity,total_price,status)
+       VALUES($1,$2,$3,$4,$5,$6,'pending')
        RETURNING *`,
-      [req.user.userId, equipment_id, start_date, end_date, total]
+      [req.user.userId, equipment_id, start_date, end_date, quantity, total]
     );
 
     // Decrement equipment quantity
     await pool.query(
-      "UPDATE equipment SET quantity = quantity - 1 WHERE id = $1",
-      [equipment_id]
+      "UPDATE equipment SET quantity = quantity - $2 WHERE id = $1",
+      [equipment_id, quantity]
     );
 
-    res.json({ ...booking.rows[0], quantity_left: equipment.quantity - 1 });
+    res.json({ ...booking.rows[0], quantity_left: equipment.quantity - quantity });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -126,9 +115,10 @@ exports.returnEquipment = async (req, res) => {
     );
 
     // Increment equipment quantity
+    const returnQuantity = booking.rows[0].quantity || 1;
     await pool.query(
-      "UPDATE equipment SET quantity = quantity + 1 WHERE id = $1",
-      [booking.rows[0].equipment_id]
+      "UPDATE equipment SET quantity = quantity + $2 WHERE id = $1",
+      [booking.rows[0].equipment_id, returnQuantity]
     );
 
     res.json({

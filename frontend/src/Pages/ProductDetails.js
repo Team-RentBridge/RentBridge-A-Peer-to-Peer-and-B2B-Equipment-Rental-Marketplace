@@ -15,6 +15,7 @@ function ProductDetails() {
   const [product, setProduct] = useState(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
 
@@ -40,6 +41,7 @@ function ProductDetails() {
         equipment_id: id,
         start_date: startDate,
         end_date: endDate,
+        quantity: quantity,
       });
       alert("Booking Successful! Check your Dashboard.");
       navigate("/dashboard");
@@ -177,6 +179,18 @@ function ProductDetails() {
                     className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all appearance-none"
                   />
                 </div>
+              </div>
+              
+              <div className="space-y-2 mt-4">
+                  <label className="text-xs font-bold text-white/40 ml-1 uppercase tracking-wider">Quantity (Available: {product.quantity})</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={product.quantity}
+                    value={quantity}
+                    onChange={(e) => setQuantity(Number(e.target.value))}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all appearance-none"
+                  />
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-4">

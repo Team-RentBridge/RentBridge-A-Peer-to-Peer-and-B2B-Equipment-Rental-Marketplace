@@ -52,6 +52,7 @@ const createTables = async () => {
         equipment_id INTEGER REFERENCES equipment(id),
         start_date DATE NOT NULL,
         end_date DATE NOT NULL,
+        quantity INTEGER DEFAULT 1,
         total_price DECIMAL(10,2) NOT NULL,
         status VARCHAR(50) DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

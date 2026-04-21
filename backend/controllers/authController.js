@@ -2,11 +2,6 @@ const pool = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-/*
-========================================
-SIGNUP (regular users only)
-========================================
-*/
 exports.signup = async (req, res) => {
   const { name, email, password, role } = req.body;
 
@@ -22,8 +17,6 @@ exports.signup = async (req, res) => {
 
     // 🔐 hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // ✅ insert user (Admin registration is strictly via admin table, not here)
     const result = await pool.query(
       `INSERT INTO users (name, email, password, role)
        VALUES ($1, $2, $3, $4)
@@ -54,11 +47,6 @@ exports.signup = async (req, res) => {
   }
 };
 
-/*
-========================================
-LOGIN — checks admin table first, then users table
-========================================
-*/
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 

@@ -13,7 +13,8 @@ import {
   Star,
   CalendarCheck,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  Edit
 } from "lucide-react";
 import API from "../api/api";
 import Navbar from "../components/layout/Navbar";
@@ -25,6 +26,7 @@ function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -34,11 +36,14 @@ function AdminDashboard() {
       API.get("/admin/stats"),
       API.get("/admin/users"),
       API.get("/admin/bookings"),
+      API.get("/equipment"),
     ])
-      .then(([statsRes, usersRes, bookingsRes]) => {
+      .then(([statsRes, usersRes, bookingsRes, equipmentRes]) => {
         setStats(statsRes.data);
         setUsers(usersRes.data);
         setBookings(bookingsRes.data);
+        const userEquipment = equipmentRes.data.filter(eq => eq.owner_id === user.id);
+        setEquipment(userEquipment);
         setLoading(false);
       })
       .catch(err => {
@@ -58,6 +63,16 @@ function AdminDashboard() {
     }
     loadData();
   }, [user, navigate]);
+
+  const handleDeleteEquipment = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this equipment?")) return;
+    try {
+      await API.delete(`/equipment/${id}`);
+      setEquipment(prev => prev.filter(eq => eq.id !== id));
+    } catch (err) {
+      alert("Failed to delete equipment.");
+    }
+  };
 
   const handleDeleteUser = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
@@ -88,6 +103,7 @@ function AdminDashboard() {
 
   const tabs = [
     { id: "overview", label: "Overview" },
+    { id: "equipment", label: `My Equipment (${equipment.length})` },
     { id: "users", label: `Users (${users.length})` },
     { id: "bookings", label: `Bookings (${bookings.length})` },
   ];
@@ -135,12 +151,12 @@ function AdminDashboard() {
         </header>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-10 bg-white/5 p-1.5 rounded-2xl w-fit">
+        <div className="flex gap-2 mb-10 bg-white/5 p-1.5 rounded-2xl w-fit overflow-x-auto">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${
+              className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${
                 activeTab === tab.id
                   ? "bg-primary-600 text-white shadow-lg"
                   : "text-white/40 hover:text-white"
@@ -190,6 +206,68 @@ function AdminDashboard() {
                    style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
             </motion.div>
           </>
+        )}
+
+        {/* EQUIPMENT TAB */}
+        {activeTab === "equipment" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-dark rounded-[2rem] border border-white/5 shadow-2xl overflow-hidden mb-20"
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-white/30 text-xs uppercase tracking-widest border-b border-white/5 bg-white/5">
+                    <th className="px-8 py-4 text-left">Equipment</th>
+                    <th className="px-8 py-4 text-left">Category</th>
+                    <th className="px-8 py-4 text-left">Price/Day</th>
+                    <th className="px-8 py-4 text-left">Quantity</th>
+                    <th className="px-8 py-4 text-left">Rating</th>
+                    <th className="px-8 py-4 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {equipment.length > 0 ? equipment.map((eq) => (
+                    <tr key={eq.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td className="px-8 py-4 text-white font-bold">{eq.title}</td>
+                      <td className="px-8 py-4 text-white/60 text-sm">{eq.category || 'General'}</td>
+                      <td className="px-8 py-4 text-green-400 font-bold">₹{eq.price_per_day}</td>
+                      <td className="px-8 py-4 text-white/70">{eq.quantity || 1}</td>
+                      <td className="px-8 py-4">
+                        <div className="flex items-center gap-1">
+                          <span className="text-yellow-400">★</span>
+                          <span className="text-white font-bold">{eq.avg_rating || 'N/A'}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-4 flex gap-2">
+                        <button
+                          onClick={() => navigate(`/product/${eq.id}`)}
+                          className="p-2 rounded-xl text-blue-400 hover:bg-blue-500/10 transition-colors"
+                          title="View details"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEquipment(eq.id)}
+                          className="p-2 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
+                          title="Delete equipment"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan="6" className="py-16 text-center text-white/30 font-medium">
+                        No equipment found. <button onClick={() => navigate('/add-equipment')} className="text-primary-400 hover:text-primary-300">Add one now</button>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
         )}
 
         {/* USERS TAB */}

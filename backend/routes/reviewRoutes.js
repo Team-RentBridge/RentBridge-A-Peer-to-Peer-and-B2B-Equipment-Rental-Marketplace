@@ -1,9 +1,12 @@
 const router = require("express").Router();
 const auth = require("../middleware/authMiddleware");
-const { addReview, getReviewsByEquipment, deleteReview } = require("../controllers/reviewController");
+const { addReview, getReviewsByEquipment, deleteReview, getOwnerRating } = require("../controllers/reviewController");
 
 // Public: get reviews for a piece of equipment
 router.get("/equipment/:equipment_id", getReviewsByEquipment);
+
+// Public: get owner rating
+router.get("/owner/:owner_id", getOwnerRating);
 
 // Authenticated: add a review
 router.post("/", auth, addReview);

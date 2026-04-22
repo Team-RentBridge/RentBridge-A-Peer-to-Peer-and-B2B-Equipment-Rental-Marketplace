@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Tag } from "lucide-react";
+import { ArrowRight, Tag, Star } from "lucide-react";
 
 function ProductCard({ product }) {
+  const rating = product.avg_rating || 0;
+  const totalReviews = product.total_reviews || 0;
+
   return (
     <motion.div
       whileHover={{ y: -10 }}
@@ -21,6 +24,15 @@ function ProductCard({ product }) {
             {product.category}
           </span>
         </div>
+
+        {/* Rating Badge */}
+        {rating > 0 && (
+          <div className="absolute top-4 right-4 flex items-center gap-1 px-3 py-1.5 glass backdrop-blur-md border border-white/10 rounded-full">
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            <span className="text-sm font-bold text-white">{rating.toFixed(1)}</span>
+            <span className="text-xs text-white/60">({totalReviews})</span>
+          </div>
+        )}
       </div>
 
       <div className="p-8">

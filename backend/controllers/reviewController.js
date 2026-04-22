@@ -17,11 +17,23 @@ exports.addReview = async (req, res) => {
       return res.status(400).json({ message: "Rating must be between 1 and 5" });
     }
 
+    // Get equipment owner
+    const equipmentRes = await pool.query(
+      "SELECT owner_id FROM equipment WHERE id = $1",
+      [equipment_id]
+    );
+
+    if (equipmentRes.rows.length === 0) {
+      return res.status(404).json({ message: "Equipment not found" });
+    }
+
+    const owner_id = equipmentRes.rows[0].owner_id;
+
     const result = await pool.query(
-      `INSERT INTO reviews (user_id, equipment_id, rating, comment)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO reviews (user_id, equipment_id, owner_id, rating, comment)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [req.user.userId, equipment_id, rating, comment || null]
+      [req.user.userId, equipment_id, owner_id, rating, comment || null]
     );
 
     res.status(201).json(result.rows[0]);
@@ -97,3 +109,30 @@ exports.deleteReview = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+/*
+========================================
+GET OWNER RATING
+========================================
+*/
+exports.getOwnerRating = async (req, res) => {
+  const { owner_id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT ROUND(AVG(rating)::numeric, 1) as avg_rating, COUNT(*) as total_reviews
+       FROM reviews WHERE owner_id = $1`,
+      [owner_id]
+    );
+
+    res.json({
+      avg_rating: parseFloat(result.rows[0].avg_rating) || 0,
+      total_reviews: parseInt(result.rows[0].total_reviews) || 0
+    });
+
+  } catch (err) {
+    console.error("GET OWNER RATING ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+

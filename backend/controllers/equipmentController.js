@@ -80,13 +80,23 @@ exports.getEquipment = async (req, res) => {
 
     const result = await pool.query(query, values);
 
-    // Ensure quantity is included in the response
-    const equipmentWithQuantity = result.rows.map(equipment => ({
-      ...equipment,
-      quantity: equipment.quantity || 0
+    // Get ratings for each equipment
+    const equipmentWithRatings = await Promise.all(result.rows.map(async (equipment) => {
+      const ratingResult = await pool.query(
+        `SELECT ROUND(AVG(rating)::numeric, 1) as avg_rating, COUNT(*) as total_reviews
+         FROM reviews WHERE equipment_id = $1`,
+        [equipment.id]
+      );
+      
+      return {
+        ...equipment,
+        quantity: equipment.quantity || 0,
+        avg_rating: parseFloat(ratingResult.rows[0]?.avg_rating) || 0,
+        total_reviews: parseInt(ratingResult.rows[0]?.total_reviews) || 0
+      };
     }));
 
-    res.json(equipmentWithQuantity);
+    res.json(equipmentWithRatings);
 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -109,7 +119,20 @@ exports.getEquipmentById = async (req, res) => {
       return res.status(404).json({ message: "Equipment not found" });
     }
 
-    res.json(result.rows[0]);
+    const equipment = result.rows[0];
+
+    // Get ratings for this equipment
+    const ratingResult = await pool.query(
+      `SELECT ROUND(AVG(rating)::numeric, 1) as avg_rating, COUNT(*) as total_reviews
+       FROM reviews WHERE equipment_id = $1`,
+      [equipment.id]
+    );
+
+    res.json({
+      ...equipment,
+      avg_rating: parseFloat(ratingResult.rows[0]?.avg_rating) || 0,
+      total_reviews: parseInt(ratingResult.rows[0]?.total_reviews) || 0
+    });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -134,4 +157,4 @@ exports.deleteEquipment = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
+

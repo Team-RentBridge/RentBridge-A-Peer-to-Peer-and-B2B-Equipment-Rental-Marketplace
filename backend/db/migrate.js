@@ -50,11 +50,14 @@ const bcrypt = require('bcryptjs');
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id),
         equipment_id INTEGER REFERENCES equipment(id),
+        owner_id INTEGER REFERENCES users(id),
         rating INTEGER CHECK (rating >= 1 AND rating <= 5),
         comment TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    // Add owner_id column if it doesn't exist
+    await pool.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS owner_id INTEGER REFERENCES users(id)`).catch(() => {});
     console.log('✅ reviews table ready');
 
     // Seed admin if not exists

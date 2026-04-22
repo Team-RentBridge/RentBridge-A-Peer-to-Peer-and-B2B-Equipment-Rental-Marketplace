@@ -2,10 +2,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { motion } from "framer-motion";
-import { Calendar, ShieldCheck, Zap, ArrowLeft, ShoppingCart, CreditCard } from "lucide-react";
+import { Calendar, ShieldCheck, Zap, ArrowLeft, ShoppingCart, CreditCard, Star } from "lucide-react";
 import API from "../api/api";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/footer";
+import ReviewForm from "../components/dashboard/ReviewForm";
+import ReviewsDisplay from "../components/dashboard/ReviewsDisplay";
 
 function ProductDetails() {
   const { id } = useParams();
@@ -13,6 +15,7 @@ function ProductDetails() {
   const { user } = useContext(AuthContext);
 
   const [product, setProduct] = useState(null);
+  const [ownerRating, setOwnerRating] = useState(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -23,6 +26,12 @@ function ProductDetails() {
     API.get(`/equipment/${id}`)
       .then((res) => {
         setProduct(res.data);
+        // Fetch owner rating
+        if (res.data.owner_id) {
+          API.get(`/reviews/owner/${res.data.owner_id}`)
+            .then(ratingRes => setOwnerRating(ratingRes.data))
+            .catch(err => console.error("Failed to load owner rating:", err));
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -133,6 +142,28 @@ function ProductDetails() {
               <p className="text-xl text-white/40 leading-relaxed font-medium italic">
                 {product.description || "Premium equipment maintained to the highest industry standards. Perfect for high-demand projects."}
               </p>
+
+              {/* Owner Rating */}
+              {ownerRating && (
+                <div className="mt-6 flex items-center gap-4 p-4 glass-dark rounded-xl border border-white/5">
+                  <div className="flex items-center gap-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-4 h-4 ${
+                          i < Math.round(ownerRating.avg_rating)
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-white/20"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <div className="text-sm text-white/70">
+                    <span className="font-bold text-white">{ownerRating.avg_rating > 0 ? ownerRating.avg_rating.toFixed(1) : 'New'}</span>
+                    <span> · {ownerRating.total_reviews} {ownerRating.total_reviews === 1 ? 'rating' : 'ratings'}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Price & Penalty Display */}
@@ -215,6 +246,28 @@ function ProductDetails() {
             </div>
           </motion.div>
         </div>
+
+        {/* Rating & Reviews Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-20 grid lg:grid-cols-3 gap-12"
+        >
+          <div className="lg:col-span-2">
+            <h2 className="text-3xl font-black text-white mb-8">Customer Reviews</h2>
+            <ReviewsDisplay equipment_id={id} user={user} />
+          </div>
+
+          <div>
+            {user && user.role !== 'admin' && (
+              <>
+                <h2 className="text-2xl font-black text-white mb-6">Leave a Review</h2>
+                <ReviewForm equipment_id={id} onSubmitSuccess={() => window.location.reload()} />
+              </>
+            )}
+          </div>
+        </motion.div>
       </main>
 
       <Footer />

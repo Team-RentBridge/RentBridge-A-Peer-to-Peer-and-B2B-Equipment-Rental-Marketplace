@@ -28,6 +28,10 @@ const bcrypt = require('bcryptjs');
     
     // Add quantity to bookings if missing
     await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS quantity INTEGER DEFAULT 1`).catch(() => {});
+    // Add is_for_sale to equipment if missing
+    await pool.query(`ALTER TABLE equipment ADD COLUMN IF NOT EXISTS is_for_sale BOOLEAN DEFAULT false`).catch(() => {});
+    // Add buy_price to equipment if missing
+    await pool.query(`ALTER TABLE equipment ADD COLUMN IF NOT EXISTS buy_price DECIMAL(10,2) DEFAULT null`).catch(() => {});
     console.log('✅ equipment columns ready');
 
     // Create payments table

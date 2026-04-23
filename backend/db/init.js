@@ -31,7 +31,7 @@ const createTables = async () => {
         id SERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
         description TEXT,
-        price_per_day DECIMAL(10,2) NOT NULL,
+        price_per_day DECIMAL(10,2),
         penalty_per_day DECIMAL(10,2) DEFAULT 0,
         category VARCHAR(100) DEFAULT 'General',
         owner_id INTEGER REFERENCES users(id),
@@ -40,9 +40,15 @@ const createTables = async () => {
         image_url VARCHAR(500),
         quantity INTEGER DEFAULT 1,
         is_featured BOOLEAN DEFAULT false,
+        is_for_sale BOOLEAN DEFAULT false,
+        buy_price DECIMAL(10,2) DEFAULT null,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Migrate: add new columns to existing equipment tables
+    await pool.query(`ALTER TABLE equipment ADD COLUMN IF NOT EXISTS is_for_sale BOOLEAN DEFAULT false`);
+    await pool.query(`ALTER TABLE equipment ADD COLUMN IF NOT EXISTS buy_price DECIMAL(10,2) DEFAULT null`);
 
     // Bookings table
     await pool.query(`
@@ -89,6 +95,7 @@ const createTables = async () => {
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id),
         equipment_id INTEGER REFERENCES equipment(id),
+        owner_id INTEGER REFERENCES users(id),
         rating INTEGER CHECK (rating >= 1 AND rating <= 5),
         comment TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -120,18 +127,18 @@ const createTables = async () => {
     const equipmentCount = await pool.query("SELECT COUNT(*) FROM equipment");
     if (parseInt(equipmentCount.rows[0].count) === 0) {
       await pool.query(`
-        INSERT INTO equipment (title, description, price_per_day, penalty_per_day, category, owner_id, image_url, quantity, is_featured)
+        INSERT INTO equipment (title, description, price_per_day, penalty_per_day, category, owner_id, image_url, quantity, is_featured, is_for_sale, buy_price)
         VALUES
-        ('MacBook Pro 16"', 'High-performance laptop for professionals', 150.00, 50.00, 'Electronics', 1, 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400', 5, true),
-        ('Canon EOS R5', 'Professional camera for photography', 200.00, 75.00, 'Electronics', 2, 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400', 3, false),
-        ('Mountain Bike', 'Trek mountain bike for outdoor adventures', 50.00, 20.00, 'Bikes', 1, 'https://images.unsplash.com/photo-1471506480208-91b3a4cc6372?w=400', 7, true),
-        ('Chemistry Lab Set', 'Complete chemistry lab equipment', 100.00, 30.00, 'Books', 2, 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=400', 2, false),
-        ('Projector', '4K projector for presentations', 80.00, 25.00, 'Electronics', 1, 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400', 4, false),
-        ('Drone', 'DJI Mavic Air 2 for aerial photography', 120.00, 40.00, 'Electronics', 2, 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=400', 6, true),
-        ('Camping Tent', '4-person waterproof camping tent', 30.00, 10.00, 'Outdoor', 1, 'https://images.unsplash.com/photo-1504851149312-7a075b496cc7?w=400', 10, false),
-        ('Power Generator', 'Portable 2000W generator', 60.00, 20.00, 'Tools', 2, 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400', 3, false),
-        ('Sound System', 'Professional audio speakers', 90.00, 30.00, 'Electronics', 1, 'https://images.unsplash.com/photo-1545167622-3a6ac756afa4?w=400', 5, true),
-        ('Kayak', 'Single-person inflatable kayak', 40.00, 15.00, 'Water Sports', 2, 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400', 8, false)
+        ('MacBook Pro 16"', 'High-performance laptop for professionals', 150.00, 50.00, 'Electronics', 1, 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400', 5, true, false, null),
+        ('Canon EOS R5', 'Professional camera for photography', 200.00, 75.00, 'Electronics', 2, 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400', 3, false, false, null),
+        ('Mountain Bike', 'Trek mountain bike for outdoor adventures', 50.00, 20.00, 'Bikes', 1, 'https://images.unsplash.com/photo-1471506480208-91b3a4cc6372?w=400', 7, true, false, null),
+        ('Chemistry Lab Set', 'Complete chemistry lab equipment', 100.00, 30.00, 'Books', 2, 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=400', 2, false, true, 800.00),
+        ('Projector', '4K projector for presentations', 80.00, 25.00, 'Electronics', 1, 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400', 4, false, false, null),
+        ('Drone', 'DJI Mavic Air 2 for aerial photography', 120.00, 40.00, 'Electronics', 2, 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=400', 6, true, false, null),
+        ('Camping Tent', '4-person waterproof camping tent', 30.00, 10.00, 'Outdoor', 1, 'https://images.unsplash.com/photo-1504851149312-7a075b496cc7?w=400', 10, false, false, null),
+        ('Power Generator', 'Portable 2000W generator', 60.00, 20.00, 'Tools', 2, 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400', 3, false, false, null),
+        ('Sound System', 'Professional audio speakers', 90.00, 30.00, 'Electronics', 1, 'https://images.unsplash.com/photo-1545167622-3a6ac756afa4?w=400', 5, true, false, null),
+        ('Kayak', 'Single-person inflatable kayak', null, null, 'Water Sports', 2, 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400', 8, false, true, 400.00)
       `);
     }
 

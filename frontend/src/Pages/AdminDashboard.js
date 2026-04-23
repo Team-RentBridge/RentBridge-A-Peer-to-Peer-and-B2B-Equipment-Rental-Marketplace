@@ -14,7 +14,8 @@ import {
   CalendarCheck,
   Trash2,
   RefreshCw,
-  Edit
+  Edit,
+  ShoppingCart
 } from "lucide-react";
 import API from "../api/api";
 import Navbar from "../components/layout/Navbar";
@@ -94,11 +95,11 @@ function AdminDashboard() {
     { label: "Total Users", value: stats?.totalPeers || 0, icon: Users, color: "text-blue-400" },
     { label: "Equipment Listed", value: stats?.totalEquipment || 0, icon: Package, color: "text-purple-400" },
     { label: "Revenue", value: `₹${stats?.totalRevenue || 0}`, icon: IndianRupee, color: "text-green-400" },
-    { label: "Active Users", value: stats?.totalActiveUsers || 0, icon: Activity, color: "text-primary-400" },
-    { label: "Transactions", value: stats?.totalTransactions || 0, icon: TrendingUp, color: "text-orange-400" },
+    { label: "Total Sales", value: stats?.totalSales || 0, icon: ShoppingCart, color: "text-blue-400" },
+    { label: "Total Rentals", value: stats?.totalRentals || 0, icon: TrendingUp, color: "text-orange-400" },
+    { label: "Credibility", value: `${stats?.platformCredibility || 84}%`, icon: Star, color: "text-pink-400" },
     { label: "Daily Active", value: stats?.dailyActiveUsers || 0, icon: Activity, color: "text-cyan-400" },
     { label: "Pending", value: stats?.pendingApprovals || 0, icon: ShieldCheck, color: "text-yellow-400" },
-    { label: "Reviews", value: stats?.totalReviews || 0, icon: Star, color: "text-pink-400" },
   ];
 
   const tabs = [

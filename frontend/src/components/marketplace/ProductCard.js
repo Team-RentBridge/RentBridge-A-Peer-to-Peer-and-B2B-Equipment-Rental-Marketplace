@@ -23,6 +23,11 @@ function ProductCard({ product }) {
           <span className="px-3 py-1.5 glass backdrop-blur-md border border-white/10 text-[10px] font-black text-white uppercase tracking-widest rounded-full">
             {product.category}
           </span>
+          {product.is_for_sale && (
+            <span className="ml-2 px-3 py-1.5 bg-indigo-600/90 backdrop-blur-md border border-indigo-500/50 text-[10px] font-black text-white uppercase tracking-widest rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]">
+              For Sale
+            </span>
+          )}
         </div>
 
         {/* Rating Badge */}
@@ -46,14 +51,20 @@ function ProductCard({ product }) {
 
         <div className="flex items-center justify-between mt-auto">
           <div>
-            <span className="text-2xl font-black text-white">₹{product.price_per_day}</span>
-            <span className="text-white/30 text-xs font-bold uppercase ml-1 tracking-tighter">/ day</span>
+            {product.is_for_sale ? (
+              <span className="text-2xl font-black text-white">₹{product.buy_price}</span>
+            ) : (
+              <>
+                <span className="text-2xl font-black text-white">₹{product.price_per_day}</span>
+                <span className="text-white/30 text-xs font-bold uppercase ml-1 tracking-tighter">/ day</span>
+              </>
+            )}
           </div>
           
           <Link to={`/product/${product.id}`}>
             <motion.button
               whileHover={{ x: 5 }}
-              className="p-3 bg-primary-600 hover:bg-primary-500 rounded-xl text-white shadow-lg shadow-primary-500/20 transition-all group/btn"
+              className={`p-3 rounded-xl text-white shadow-lg transition-all group/btn ${product.is_for_sale ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20' : 'bg-primary-600 hover:bg-primary-500 shadow-primary-500/20'}`}
             >
               <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
             </motion.button>

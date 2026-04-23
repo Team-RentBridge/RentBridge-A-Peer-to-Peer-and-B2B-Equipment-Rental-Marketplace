@@ -67,6 +67,16 @@ exports.getUserStats = async (req, res) => {
       [userId]
     );
 
+    // Credibility Score (dynamic)
+    const credibilityResult = await pool.query(
+      `SELECT AVG(rating) as avg_rating FROM reviews WHERE owner_id = $1`,
+      [userId]
+    );
+    let credibilityScore = 84; // Default if no reviews
+    if (credibilityResult.rows[0].avg_rating) {
+      credibilityScore = (parseFloat(credibilityResult.rows[0].avg_rating) / 5.0) * 100;
+    }
+
     res.json({
       user: user.rows[0],
       stats: {
@@ -76,7 +86,7 @@ exports.getUserStats = async (req, res) => {
         totalRevenue: parseFloat(totalRevenue.rows[0].revenue),
         activeRentals: parseInt(activeRentals.rows[0].count),
         pendingDues: parseFloat(pendingDues.rows[0].dues),
-        credibilityScore: 8.4 // TODO: calculate based on history
+        credibilityScore: parseFloat(credibilityScore.toFixed(1))
       }
     });
 
@@ -97,7 +107,7 @@ exports.getUserTransactions = async (req, res) => {
 
     // Get rentals where user is borrower
     const borrowedItems = await pool.query(
-      `SELECT b.*, e.title, e.image_url,
+      `SELECT b.*, e.title, e.image_url, e.is_for_sale, e.buy_price,
        CASE
          WHEN b.status = 'completed' THEN 'completed'
          WHEN CURRENT_DATE > b.end_date THEN 'Overdue'
@@ -118,7 +128,7 @@ exports.getUserTransactions = async (req, res) => {
 
     // Get rentals where user is lender
     const lentItems = await pool.query(
-      `SELECT b.*, e.title, e.image_url, u.name as borrower_name,
+      `SELECT b.*, e.title, e.image_url, e.is_for_sale, e.buy_price, u.name as borrower_name,
        CASE
          WHEN b.status = 'completed' THEN 'completed'
          WHEN CURRENT_DATE > b.end_date THEN 'Overdue'

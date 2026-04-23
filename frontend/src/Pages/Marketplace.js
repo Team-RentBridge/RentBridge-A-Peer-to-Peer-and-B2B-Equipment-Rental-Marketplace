@@ -10,6 +10,7 @@ function Marketplace() {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [viewMode, setViewMode] = useState("all"); // 'all', 'rent', 'buy'
   
   // Sorting & Pagination State
   const [sortOption, setSortOption] = useState("");
@@ -34,16 +35,23 @@ function Marketplace() {
   }, [sortRef]);
 
   // 1. Filter
-  let processed = products.filter(p =>
-    (p.title?.toLowerCase() || "").includes(search.toLowerCase()) &&
-    (selectedCategory === "" || p.category === selectedCategory)
-  );
+  let processed = products.filter(p => {
+    const matchesSearch = (p.title?.toLowerCase() || "").includes(search.toLowerCase());
+    const matchesCategory = (selectedCategory === "" || p.category === selectedCategory);
+    let matchesMode = true;
+    if (viewMode === 'rent') matchesMode = p.is_for_sale !== true; // Rent by default
+    if (viewMode === 'buy') matchesMode = p.is_for_sale === true;
+    return matchesSearch && matchesCategory && matchesMode;
+  });
+
+  // Helper to get the effective price of an item
+  const getPrice = (item) => item.is_for_sale ? parseFloat(item.buy_price) || 0 : parseFloat(item.price_per_day) || 0;
 
   // 2. Sort
   if (sortOption === "price_asc") {
-    processed.sort((a, b) => parseFloat(a.price_per_day) - parseFloat(b.price_per_day));
+    processed.sort((a, b) => getPrice(a) - getPrice(b));
   } else if (sortOption === "price_desc") {
-    processed.sort((a, b) => parseFloat(b.price_per_day) - parseFloat(a.price_per_day));
+    processed.sort((a, b) => getPrice(b) - getPrice(a));
   } else if (sortOption === "name_asc") {
     processed.sort((a, b) => a.title.localeCompare(b.title));
   } else if (sortOption === "name_desc") {
@@ -61,7 +69,7 @@ function Marketplace() {
   // Reset page when search or sort changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, sortOption, selectedCategory]);
+  }, [search, sortOption, selectedCategory, viewMode]);
 
   return (
     <div className="min-h-screen text-white">
@@ -75,8 +83,22 @@ function Marketplace() {
         >
           <h1 className="text-4xl font-black tracking-tight">Marketplace</h1>
           
-          <div className="flex gap-4 w-full md:w-auto relative">
-            <div className="relative flex-1 md:w-80 group">
+          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto items-center">
+            {/* Rent/Buy Toggle */}
+            <div className="flex bg-white/5 border border-white/10 rounded-2xl p-1 w-full md:w-auto justify-center">
+              {['all', 'rent', 'buy'].map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  className={`px-6 py-2.5 rounded-xl text-sm font-bold capitalize transition-all ${viewMode === mode ? (mode === 'buy' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'bg-primary-600 text-white shadow-lg shadow-primary-500/20') : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                >
+                  {mode === 'all' ? 'All Items' : mode === 'rent' ? 'For Rent' : 'For Sale'}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-4 w-full md:w-auto relative">
+              <div className="relative flex-1 md:w-80 group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-primary-400 transition-colors" />
               <input
                 type="text"
@@ -128,6 +150,7 @@ function Marketplace() {
                 )}
               </AnimatePresence>
             </div>
+          </div>
           </div>
         </motion.div>
 

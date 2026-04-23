@@ -186,15 +186,19 @@ function Dashboard() {
                     <td className="px-10 py-8 font-black text-white">₹{t.total_price}</td>
                     <td className="px-10 py-8">
                       <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                        t.status === 'completed' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 
+                        t.status === 'completed' || t.is_for_sale ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 
                         'bg-primary-500/20 text-primary-400 border border-primary-500/30'
                       }`}>
-                        {t.status}
+                        {t.is_for_sale ? (t.borrower_name ? 'Sold' : 'Purchased') : t.status}
                       </span>
                     </td>
                     <td className="px-10 py-8 text-right">
-                      {t.status === 'completed' ? (
+                      {t.is_for_sale ? (
+                        <span className="text-xs font-bold text-white/20 uppercase tracking-widest">N/A</span>
+                      ) : t.status === 'completed' ? (
                         <span className="text-xs font-bold text-white/20 uppercase tracking-widest">Returned</span>
+                      ) : t.borrower_name ? (
+                        <span className="text-xs font-bold text-white/20 uppercase tracking-widest">Lent Out</span>
                       ) : (
                         <button 
                           onClick={() => handleReturn(t.id)}

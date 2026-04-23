@@ -33,8 +33,12 @@ function Cart() {
     localStorage.setItem('cart', JSON.stringify(updatedCart));
   };
 
+  const getItemPrice = (item) => {
+    return item.is_for_sale ? parseFloat(item.buy_price) : parseFloat(item.price_per_day);
+  };
+
   const getTotalAmount = () => {
-    return cartItems.reduce((total, item) => total + (item.price_per_day * item.quantity), 0);
+    return cartItems.reduce((total, item) => total + (getItemPrice(item) * item.quantity), 0);
   };
 
   return (
@@ -96,8 +100,8 @@ function Cart() {
                   </div>
 
                   <div className="text-right min-w-[100px]">
-                    <div className="text-xl font-black text-white">₹{item.price_per_day * item.quantity}</div>
-                    <div className="text-white/30 text-[10px] font-bold uppercase">Total</div>
+                    <div className="text-xl font-black text-white">₹{getItemPrice(item) * item.quantity}</div>
+                    <div className="text-white/30 text-[10px] font-bold uppercase">{item.is_for_sale ? 'Buy Total' : 'Rent Total'}</div>
                   </div>
 
                   <button 

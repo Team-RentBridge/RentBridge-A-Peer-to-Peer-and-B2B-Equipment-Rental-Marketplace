@@ -15,10 +15,12 @@ const AddEquipmentForm = ({ onSuccess }) => {
         image_url: '',
         price_per_day: '',
         penalty_per_day: '',
+        buy_price: '',
         quantity: '',
         category: 'Construction',
         available_from: '',
         available_to: '',
+        listing_type: 'rent',
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,10 +43,13 @@ const AddEquipmentForm = ({ onSuccess }) => {
 
         setIsSubmitting(true);
         try {
+            const isForSale = formData.listing_type === 'sell';
             await API.post('/equipment/add', {
                 ...formData,
-                price_per_day: parseFloat(formData.price_per_day),
-                penalty_per_day: parseFloat(formData.penalty_per_day) || 0,
+                is_for_sale: isForSale,
+                price_per_day: isForSale ? null : parseFloat(formData.price_per_day),
+                penalty_per_day: isForSale ? 0 : (parseFloat(formData.penalty_per_day) || 0),
+                buy_price: isForSale ? parseFloat(formData.buy_price) : null,
                 quantity: parseInt(formData.quantity) || 1,
             });
             setSuccess('Equipment listed successfully! 🚀');
@@ -77,6 +82,25 @@ const AddEquipmentForm = ({ onSuccess }) => {
                     <span className="text-sm font-bold">{success}</span>
                 </div>
             )}
+
+            <div className="flex justify-center mb-8">
+                <div className="bg-white/5 border border-white/10 p-1.5 rounded-2xl inline-flex gap-1">
+                    <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, listing_type: 'rent' })}
+                        className={`px-8 py-3 rounded-xl font-bold text-sm transition-all ${formData.listing_type === 'rent' ? 'bg-primary-600 text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                    >
+                        For Rent
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, listing_type: 'sell' })}
+                        className={`px-8 py-3 rounded-xl font-bold text-sm transition-all ${formData.listing_type === 'sell' ? 'bg-indigo-600 text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                    >
+                        For Sale
+                    </button>
+                </div>
+            </div>
 
             <div className="grid md:grid-cols-2 gap-8">
                 {/* Left Column */}
@@ -119,39 +143,61 @@ const AddEquipmentForm = ({ onSuccess }) => {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className={labelClasses}>
-                                <DollarSign className="w-4 h-4" />
-                                Price / Day (₹)
-                            </label>
-                            <input
-                                name="price_per_day"
-                                type="number"
-                                min="1"
-                                step="0.01"
-                                placeholder="0.00"
-                                value={formData.price_per_day}
-                                onChange={handleChange}
-                                required
-                                className={inputClasses}
-                            />
-                        </div>
-                        <div>
-                            <label className={labelClasses}>
-                                <AlertCircle className="w-4 h-4" />
-                                Late Penalty (₹)
-                            </label>
-                            <input
-                                name="penalty_per_day"
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                placeholder="0.00"
-                                value={formData.penalty_per_day}
-                                onChange={handleChange}
-                                className={inputClasses}
-                            />
-                        </div>
+                        {formData.listing_type === 'rent' ? (
+                            <>
+                                <div>
+                                    <label className={labelClasses}>
+                                        <DollarSign className="w-4 h-4" />
+                                        Price / Day (₹)
+                                    </label>
+                                    <input
+                                        name="price_per_day"
+                                        type="number"
+                                        min="1"
+                                        step="0.01"
+                                        placeholder="0.00"
+                                        value={formData.price_per_day}
+                                        onChange={handleChange}
+                                        required
+                                        className={inputClasses}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelClasses}>
+                                        <AlertCircle className="w-4 h-4" />
+                                        Late Penalty (₹)
+                                    </label>
+                                    <input
+                                        name="penalty_per_day"
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        placeholder="0.00"
+                                        value={formData.penalty_per_day}
+                                        onChange={handleChange}
+                                        className={inputClasses}
+                                    />
+                                </div>
+                            </>
+                        ) : (
+                            <div className="col-span-2">
+                                <label className={labelClasses}>
+                                    <DollarSign className="w-4 h-4" />
+                                    Sale Price (₹)
+                                </label>
+                                <input
+                                    name="buy_price"
+                                    type="number"
+                                    min="1"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    value={formData.buy_price}
+                                    onChange={handleChange}
+                                    required
+                                    className={inputClasses}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <div>
@@ -212,28 +258,30 @@ const AddEquipmentForm = ({ onSuccess }) => {
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className={labelClasses}>Available From</label>
-                            <input
-                                name="available_from"
-                                type="date"
-                                value={formData.available_from}
-                                onChange={handleChange}
-                                className={inputClasses}
-                            />
+                    {formData.listing_type === 'rent' && (
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className={labelClasses}>Available From</label>
+                                <input
+                                    name="available_from"
+                                    type="date"
+                                    value={formData.available_from}
+                                    onChange={handleChange}
+                                    className={inputClasses}
+                                />
+                            </div>
+                            <div>
+                                <label className={labelClasses}>Available To</label>
+                                <input
+                                    name="available_to"
+                                    type="date"
+                                    value={formData.available_to}
+                                    onChange={handleChange}
+                                    className={inputClasses}
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className={labelClasses}>Available To</label>
-                            <input
-                                name="available_to"
-                                type="date"
-                                value={formData.available_to}
-                                onChange={handleChange}
-                                className={inputClasses}
-                            />
-                        </div>
-                    </div>
+                    )}
                 </div>
             </div>
 

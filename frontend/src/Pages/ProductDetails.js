@@ -42,20 +42,22 @@ function ProductDetails() {
 
   const handleBooking = async () => {
     if (!user) return navigate("/login");
-    if (!startDate || !endDate) return alert("Please select dates");
+    if (!product.is_for_sale && (!startDate || !endDate)) return alert("Please select dates");
 
     setBookingLoading(true);
     try {
+      // For purchases, we use today's date to satisfy the bookings table NOT NULL constraint
+      const today = new Date().toISOString().split('T')[0];
       await API.post("/bookings/create", {
         equipment_id: id,
-        start_date: startDate,
-        end_date: endDate,
+        start_date: product.is_for_sale ? today : startDate,
+        end_date: product.is_for_sale ? today : endDate,
         quantity: quantity,
       });
-      alert("Booking Successful! Check your Dashboard.");
+      alert(product.is_for_sale ? "Purchase Successful! Check your Dashboard." : "Booking Successful! Check your Dashboard.");
       navigate("/dashboard");
     } catch (err) {
-      alert(err.response?.data?.message || "Booking failed");
+      alert(err.response?.data?.message || (product.is_for_sale ? "Purchase failed" : "Booking failed"));
     } finally {
       setBookingLoading(false);
     }
@@ -167,50 +169,65 @@ function ProductDetails() {
             </div>
 
             {/* Price & Penalty Display */}
-            <div className="grid grid-cols-2 gap-8 p-8 glass-dark rounded-[2.5rem] border border-white/5">
+            <div className={`grid ${product.is_for_sale ? 'grid-cols-1' : 'grid-cols-2'} gap-8 p-8 glass-dark rounded-[2.5rem] border border-white/5`}>
               <div>
-                <span className="block text-xs font-black text-white/30 uppercase tracking-[0.2em] mb-2">Daily Rate</span>
+                <span className="block text-xs font-black text-white/30 uppercase tracking-[0.2em] mb-2">
+                  {product.is_for_sale ? 'Sale Price' : 'Daily Rate'}
+                </span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-white">₹{product.price_per_day}</span>
-                  <span className="text-white/40 text-sm font-bold uppercase">/ day</span>
+                  <span className="text-4xl font-black text-white">₹{product.is_for_sale ? product.buy_price : product.price_per_day}</span>
+                  {!product.is_for_sale && <span className="text-white/40 text-sm font-bold uppercase">/ day</span>}
                 </div>
               </div>
-              <div>
-                <span className="block text-xs font-black text-white/30 uppercase tracking-[0.2em] mb-2">Late Penalty</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-red-400">₹{product.penalty_per_day || '1000'}</span>
-                  <span className="text-white/40 text-sm font-bold uppercase">/ day</span>
+              {!product.is_for_sale && (
+                <div>
+                  <span className="block text-xs font-black text-white/30 uppercase tracking-[0.2em] mb-2">Late Penalty</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-black text-red-400">₹{product.penalty_per_day || '1000'}</span>
+                    <span className="text-white/40 text-sm font-bold uppercase">/ day</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Booking Form */}
             <div className="glass-dark rounded-[2.5rem] p-10 border border-white/10 space-y-8 relative overflow-hidden">
               <div className="flex items-center gap-3 text-primary-400 font-black uppercase tracking-widest text-xs mb-4">
-                <Calendar className="w-5 h-5" />
-                Rental Period
+                {product.is_for_sale ? (
+                  <>
+                    <ShoppingCart className="w-5 h-5" />
+                    Purchase Details
+                  </>
+                ) : (
+                  <>
+                    <Calendar className="w-5 h-5" />
+                    Rental Period
+                  </>
+                )}
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-white/40 ml-1 uppercase tracking-wider">Start Date</label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all appearance-none"
-                  />
+              {!product.is_for_sale && (
+                <div className="grid sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-white/40 ml-1 uppercase tracking-wider">Start Date</label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all appearance-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-white/40 ml-1 uppercase tracking-wider">End Date</label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all appearance-none"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-white/40 ml-1 uppercase tracking-wider">End Date</label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all appearance-none"
-                  />
-                </div>
-              </div>
+              )}
               
               <div className="space-y-2 mt-4">
                   <label className="text-xs font-bold text-white/40 ml-1 uppercase tracking-wider">Quantity (Available: {product.quantity})</label>
@@ -228,10 +245,10 @@ function ProductDetails() {
                 <button
                   onClick={handleBooking}
                   disabled={bookingLoading}
-                  className="flex-1 bg-primary-600 hover:bg-primary-500 text-white py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all shadow-lg shadow-primary-500/20 active:scale-95 disabled:opacity-50"
+                  className={`flex-1 text-white py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all shadow-lg active:scale-95 disabled:opacity-50 ${product.is_for_sale ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20' : 'bg-primary-600 hover:bg-primary-500 shadow-primary-500/20'}`}
                 >
                   <CreditCard className="w-6 h-6" />
-                  {bookingLoading ? "Processing..." : "Rent Now"}
+                  {bookingLoading ? "Processing..." : (product.is_for_sale ? "Buy Now" : "Rent Now")}
                 </button>
                 <button
                   onClick={addToCart}

@@ -22,11 +22,18 @@ exports.createBooking = async (req, res) => {
 
 
     // Calculate price and days
-    const price = equipment.price_per_day;
-    const days =
-      Math.abs(new Date(end_date) - new Date(start_date)) /
-        (1000 * 60 * 60 * 24) + 1;
-    const total = price * days * quantity;
+    let total;
+    if (equipment.is_for_sale) {
+      // For items being sold, use the flat buy_price
+      total = parseFloat(equipment.buy_price) * quantity;
+    } else {
+      // For rentals, calculate based on daily rate
+      const price = equipment.price_per_day;
+      const days =
+        Math.abs(new Date(end_date) - new Date(start_date)) /
+          (1000 * 60 * 60 * 24) + 1;
+      total = price * days * quantity;
+    }
 
     // Insert booking
     const booking = await pool.query(

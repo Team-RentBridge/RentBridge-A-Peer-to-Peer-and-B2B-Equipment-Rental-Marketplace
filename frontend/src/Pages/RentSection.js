@@ -20,6 +20,7 @@ function RentSection() {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("rentedByMe");
 
   const fetchTransactions = () => {
     API.get("/user/transactions")
@@ -79,12 +80,40 @@ function RentSection() {
             <RotateCcw className="text-primary-500 w-10 h-10" />
             Active Rentals
           </motion.h1>
-          <p className="text-white/40 mt-4 font-medium italic">Track your current equipment leases and returns</p>
+          <p className="text-white/40 mt-4 font-medium italic">Track your current equipment leases, returns, and purchases</p>
         </header>
+
+        {/* Tabs */}
+        <div className="flex gap-2 mb-10 bg-white/5 p-1.5 rounded-2xl w-fit overflow-x-auto">
+          {[
+            { id: "rentedByMe", label: "Rented By Me" },
+            { id: "rentedFromMe", label: "Rented From Me" },
+            { id: "purchased", label: "Purchased" },
+            { id: "sold", label: "Sold" }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${
+                activeTab === tab.id
+                  ? "bg-primary-600 text-white shadow-lg"
+                  : "text-white/40 hover:text-white"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
         <div className="space-y-8 mb-20">
           <AnimatePresence mode="popLayout">
-            {transactions?.map((item, idx) => (
+            {transactions?.filter(item => {
+              if (activeTab === "rentedByMe") return !item.is_for_sale && !item.borrower_name;
+              if (activeTab === "rentedFromMe") return !item.is_for_sale && item.borrower_name;
+              if (activeTab === "purchased") return item.is_for_sale && !item.borrower_name;
+              if (activeTab === "sold") return item.is_for_sale && item.borrower_name;
+              return true;
+            }).map((item, idx) => (
               <motion.div
                 key={item.id || idx}
                 layout
@@ -127,15 +156,15 @@ function RentSection() {
                   <div className="text-right">
                     <div className="text-2xl font-black text-white">₹{item.total_price}</div>
                     <div className={`flex items-center gap-2 mt-1 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ${
-                      item.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 
+                      item.status === 'completed' || item.is_for_sale ? 'bg-green-500/20 text-green-400 border-green-500/30' : 
                       'bg-primary-500/20 text-primary-400 border-primary-500/30'
                     }`}>
-                      {item.status === 'completed' ? <CheckCircle2 className="w-3 h-3" /> : <Zap className="w-3 h-3 animate-pulse" />}
-                      {item.status}
+                      {item.status === 'completed' || item.is_for_sale ? <CheckCircle2 className="w-3 h-3" /> : <Zap className="w-3 h-3 animate-pulse" />}
+                      {item.is_for_sale ? (item.borrower_name ? 'Sold' : 'Purchased') : item.status}
                     </div>
                   </div>
 
-                  {item.status !== 'completed' && (
+                  {!item.is_for_sale && item.status !== 'completed' && !item.borrower_name && (
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -151,14 +180,20 @@ function RentSection() {
             ))}
           </AnimatePresence>
 
-          {(!transactions || transactions.length === 0) && (
+          {(!transactions || transactions.filter(item => {
+              if (activeTab === "rentedByMe") return !item.is_for_sale && !item.borrower_name;
+              if (activeTab === "rentedFromMe") return !item.is_for_sale && item.borrower_name;
+              if (activeTab === "purchased") return item.is_for_sale && !item.borrower_name;
+              if (activeTab === "sold") return item.is_for_sale && item.borrower_name;
+              return true;
+            }).length === 0) && (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-center py-24 glass-dark rounded-[3rem] border border-dashed border-white/10"
             >
               <AlertCircle className="w-16 h-16 text-white/10 mx-auto mb-6" />
-              <p className="text-white/40 font-medium italic text-xl">No active rentals found at the moment.</p>
+              <p className="text-white/40 font-medium italic text-xl">No items found in this category.</p>
               <button 
                 onClick={() => navigate('/marketplace')}
                 className="mt-10 bg-primary-600 hover:bg-primary-500 text-white px-10 py-4 rounded-2xl font-black text-lg transition-all shadow-lg shadow-primary-500/20"

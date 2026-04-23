@@ -16,27 +16,31 @@ exports.addEquipment = async (req, res) => {
     available_to,
     image_url,
     quantity,
-    is_featured
+    is_featured,
+    is_for_sale,
+    buy_price
   } = req.body;
 
   try {
     const result = await pool.query(
       `INSERT INTO equipment
-      (title, description, price_per_day, penalty_per_day, category, owner_id, available_from, available_to, image_url, quantity, is_featured)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+      (title, description, price_per_day, penalty_per_day, category, owner_id, available_from, available_to, image_url, quantity, is_featured, is_for_sale, buy_price)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
       RETURNING *`,
       [
         title,
         description,
-        price_per_day,
-        penalty_per_day,
+        price_per_day || null,
+        penalty_per_day || 0,
         category || 'General',
         req.user.userId,
         available_from || null,
         available_to || null,
         image_url || null,
         quantity || 1,
-        is_featured || false
+        is_featured || false,
+        is_for_sale || false,
+        buy_price || null
       ]
     );
 

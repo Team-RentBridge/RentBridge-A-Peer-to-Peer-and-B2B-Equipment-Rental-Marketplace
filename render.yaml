@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: rentbridge-backend
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_URL
+        fromDatabase:
+          name: rentbridge-db
+          property: connectionString
+      - key: JWT_SECRET
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        value: https://rentbridge-frontend.onrender.com
+
+  - type: web
+    name: rentbridge-frontend
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npx serve -s build -p 3000
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://rentbridge-backend.onrender.com/api
+
+databases:
+  - name: rentbridge-db
+    databaseName: rentbridge_db
+    user: rentbridge_user
+    region: oregon
+    plan: free
+

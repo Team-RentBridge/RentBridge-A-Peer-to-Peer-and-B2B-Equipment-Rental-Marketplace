@@ -50,7 +50,7 @@ function ProductDetails() {
       // 1. Calculate Total Amount
       let amount = 0;
       if (product.is_for_sale) {
-        amount = product.price_per_day * quantity;
+        amount = product.buy_price * quantity;
       } else {
         const start = new Date(startDate);
         const end = new Date(endDate);

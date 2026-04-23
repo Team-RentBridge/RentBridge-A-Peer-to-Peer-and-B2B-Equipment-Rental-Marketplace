@@ -40,11 +40,77 @@ function ProductDetails() {
       });
   }, [id]);
 
-  const handleBooking = async () => {
+  const handlePayment = async () => {
     if (!user) return navigate("/login");
     if (!product.is_for_sale && (!startDate || !endDate)) return alert("Please select dates");
 
     setBookingLoading(true);
+
+    try {
+      // 1. Calculate Total Amount
+      let amount = 0;
+      if (product.is_for_sale) {
+        amount = product.price_per_day * quantity;
+      } else {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        amount = product.price_per_day * diffDays * quantity;
+      }
+
+      // 2. Create Razorpay Order in Backend
+      const { data: order } = await API.post("/payments/create-order", {
+        amount,
+        currency: "INR",
+      });
+
+      // 3. Razorpay Options
+      const options = {
+        key: "rzp_test_Sh1AkUpTajmutg", // Your Razorpay test key ID
+        amount: order.amount,
+        currency: order.currency,
+        name: "RentBridge",
+        description: `Payment for ${product.title}`,
+        order_id: order.id,
+        handler: async function (response) {
+          try {
+            // 4. Verify Payment in Backend
+            const { data: verifyData } = await API.post("/payments/verify-payment", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+
+            if (verifyData.signatureIsValid === "true") {
+              // 5. If verified, create booking/purchase record
+              await handleBooking(); 
+            }
+          } catch (error) {
+            console.error("Payment Verification Failed:", error);
+            alert("Payment Verification Failed! Please contact support.");
+          }
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+        },
+        theme: {
+          color: "#8b5cf6", // primary-500
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error("Payment Error:", error);
+      alert("Failed to initiate payment. Please try again.");
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  const handleBooking = async () => {
     try {
       // For purchases, we use today's date to satisfy the bookings table NOT NULL constraint
       const today = new Date().toISOString().split('T')[0];
@@ -58,8 +124,6 @@ function ProductDetails() {
       navigate("/dashboard");
     } catch (err) {
       alert(err.response?.data?.message || (product.is_for_sale ? "Purchase failed" : "Booking failed"));
-    } finally {
-      setBookingLoading(false);
     }
   };
 
@@ -242,21 +306,35 @@ function ProductDetails() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <button
-                  onClick={handleBooking}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handlePayment}
                   disabled={bookingLoading}
-                  className={`flex-1 text-white py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all shadow-lg active:scale-95 disabled:opacity-50 ${product.is_for_sale ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20' : 'bg-primary-600 hover:bg-primary-500 shadow-primary-500/20'}`}
+                  className={`flex-1 text-white py-6 rounded-2xl font-black text-lg flex items-center justify-center gap-4 transition-all shadow-lg disabled:opacity-50 ${product.is_for_sale ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20' : 'bg-primary-600 hover:bg-primary-500 shadow-primary-500/20'}`}
                 >
-                  <CreditCard className="w-6 h-6" />
-                  {bookingLoading ? "Processing..." : (product.is_for_sale ? "Buy Now" : "Rent Now")}
-                </button>
-                <button
+                  {bookingLoading ? (
+                    <>
+                      <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-6 h-6" />
+                      {product.is_for_sale ? "Buy Now" : "Pay & Book"}
+                    </>
+                  )}
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={addToCart}
-                  className="glass border border-white/10 hover:bg-white/10 text-white py-5 px-8 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all active:scale-95"
+                  className="flex-1 glass border border-white/10 hover:bg-white/10 text-white py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all"
                 >
                   <ShoppingCart className="w-6 h-6" />
                   Add to Cart
-                </button>
+                </motion.button>
               </div>
 
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 rounded-full blur-3xl -z-10" />

@@ -1,12 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, CreditCard } from "lucide-react";
+import { AuthContext } from "../context/AuthContext";
+import API from "../api/api";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/footer";
 
 function Cart() {
   const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,6 +43,80 @@ function Cart() {
 
   const getTotalAmount = () => {
     return cartItems.reduce((total, item) => total + (getItemPrice(item) * item.quantity), 0);
+  };
+
+  const handleCheckout = async () => {
+    if (!user) return navigate("/login");
+    if (cartItems.length === 0) return alert("Your cart is empty!");
+
+    setLoading(true);
+
+    try {
+      const totalToPay = getTotalAmount() + 1099; // Subtotal + Platform Fee + Deposit
+
+      // 1. Create Razorpay Order
+      const { data: order } = await API.post("/payments/create-order", {
+        amount: totalToPay,
+        currency: "INR",
+      });
+
+      // 2. Razorpay Options
+      const options = {
+        key: "rzp_test_Sh1AkUpTajmutg", // Test Key
+        amount: order.amount,
+        currency: order.currency,
+        name: "RentBridge",
+        description: `Cart Payment - ${cartItems.length} items`,
+        order_id: order.id,
+        handler: async function (response) {
+          try {
+            // 3. Verify Payment
+            const { data: verifyData } = await API.post("/payments/verify-payment", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+
+            if (verifyData.signatureIsValid === "true") {
+              // 4. Create Bookings for each item in cart
+              for (const item of cartItems) {
+                const today = new Date().toISOString().split('T')[0];
+                await API.post("/bookings/create", {
+                  equipment_id: item.id,
+                  start_date: today, // Simple cart checkout uses today as default
+                  end_date: today,   
+                  quantity: item.quantity,
+                });
+              }
+
+              // 5. Clear Cart & Redirect
+              localStorage.removeItem('cart');
+              setCartItems([]);
+              alert("Payment Successful! All items booked.");
+              navigate("/dashboard");
+            }
+          } catch (error) {
+            console.error("Cart Payment Verification Failed:", error);
+            alert("Payment Verification Failed!");
+          }
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+        },
+        theme: {
+          color: "#8b5cf6",
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error("Cart Checkout Error:", error);
+      alert("Failed to initiate checkout.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -161,11 +239,18 @@ function Cart() {
             </div>
 
             <button
-              disabled={cartItems.length === 0}
+              onClick={handleCheckout}
+              disabled={cartItems.length === 0 || loading}
               className="w-full bg-primary-600 hover:bg-primary-500 text-white py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all shadow-lg shadow-primary-500/20 active:scale-95 disabled:opacity-50"
             >
-              <CreditCard className="w-6 h-6" />
-              Checkout Now
+              {loading ? (
+                <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <CreditCard className="w-6 h-6" />
+                  Checkout Now
+                </>
+              )}
             </button>
             
             <p className="text-center text-[10px] text-white/20 font-black uppercase tracking-widest mt-6 flex items-center justify-center gap-2">

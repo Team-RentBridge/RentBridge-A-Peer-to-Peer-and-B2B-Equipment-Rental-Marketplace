@@ -37,7 +37,7 @@ Render will automatically:
 ### Step 3: Configure Secrets
 1. In Render Dashboard, go to Backend Service → Environment
 2. Add these variables:
-   - `DB_URL`: (Render auto-creates, or use your Supabase URL)
+   - `DB_URL`: Your Supabase PostgreSQL connection string (see below)
    - `JWT_SECRET`: Your secret key
    - `RAZORPAY_KEY_ID`: Your Razorpay key
    - `RAZORPAY_KEY_SECRET`: Your secret
@@ -45,6 +45,13 @@ Render will automatically:
 
 3. For Frontend Service → Environment:
    - `REACT_APP_API_URL`: Gets auto-populated from backend deployment
+
+### Getting Your Supabase Connection String:
+1. Go to [supabase.com](https://supabase.com)
+2. Open your project dashboard
+3. Click "Settings" → "Database"
+4. Copy the connection string (URI)
+5. Paste it as `DB_URL` in Render Backend service environment variables
 
 ### Step 4: Test Your Deployment
 - Backend: Visit `https://<backend-name>.onrender.com/`

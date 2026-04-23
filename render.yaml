@@ -4,17 +4,16 @@ services:
     runtime: node
     region: oregon
     plan: free
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm start
+    root: backend
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
       - key: DB_URL
-        fromDatabase:
-          name: rentbridge-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         sync: false
       - key: RAZORPAY_KEY_ID
@@ -29,16 +28,10 @@ services:
     runtime: node
     region: oregon
     plan: free
-    buildCommand: cd frontend && npm install && npm run build
-    startCommand: cd frontend && npx serve -s build -p 3000
+    root: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npx serve -s build -p 3000
     envVars:
       - key: REACT_APP_API_URL
         value: https://rentbridge-backend.onrender.com/api
-
-databases:
-  - name: rentbridge-db
-    databaseName: rentbridge_db
-    user: rentbridge_user
-    region: oregon
-    plan: free
 

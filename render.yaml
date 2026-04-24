@@ -4,7 +4,7 @@ services:
     runtime: node
     region: oregon
     plan: free
-    root: backend
+    rootDir: backend
     buildCommand: npm install
     startCommand: npm start
     envVars:
@@ -28,7 +28,7 @@ services:
     runtime: node
     region: oregon
     plan: free
-    root: frontend
+    rootDir: frontend
     buildCommand: npm install && npm run build
     startCommand: npx serve -s build -p 3000
     envVars:

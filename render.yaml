@@ -33,5 +33,5 @@ services:
     startCommand: npx serve -s build -p 3000
     envVars:
       - key: REACT_APP_API_URL
-        value: https://rentbridge-backend.onrender.com/api
+        value: https://rentbridge-backend-55yi.onrender.com/api
 
